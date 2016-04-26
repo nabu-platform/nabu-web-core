@@ -1,0 +1,4 @@
+string [] scripts ?= null
+
+for (script : scripts)
+	echo(string(script) + "\n")
