@@ -33,11 +33,8 @@ nabu.components.Image = Vue.component("n-img", {
 });
 
 
-/**
-Injection magic
-**/
 nabu.tmp = {}
-
+// Injection magic
 Vue.directive("inject", {
 	priority: 5000,
 	update: function(newValue, oldValue) {
