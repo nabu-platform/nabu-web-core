@@ -12,12 +12,6 @@ Vue.mixin({
 	}
 });
 
-// allows us to apply custom stuff to our components
-nabu.components.Component = Vue.component("n-component", {
-	props: ["id", "classList"],
-	template: "<div :class='[ id, classList ]'><slot></slot></div>"
-});
-
 // an image replacement that sets it as the background of a div instead of as an image tag which is very hard to style correctly
 nabu.components.Image = Vue.component("n-img", {
 	props: ["src"],
@@ -31,7 +25,6 @@ nabu.components.Image = Vue.component("n-img", {
 		}
 	}
 });
-
 
 nabu.tmp = {}
 // Injection magic
