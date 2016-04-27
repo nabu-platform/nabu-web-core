@@ -35,7 +35,9 @@ parameters:
 	target: the default "success" handler will see if there is a target, if so, it will put the response directly into that element
 	data: the data to be sent to the target (for post requests this should be in the same form as GET: key=value&key2=value2...)
 	params: an associative array which acts as data in a post and url parameters in a get
-	contentType: the content type of the data
+	contentType: the content type of the data,
+	binary: boolean to indicate whether content should be sent as binary blob (automatically set for image content types),
+	progress: a handler that is triggered periodically on progress of request
 */
 nabu.utils.ajax = function(parameters) {
 	var newXmlHttpRequest = function() {
@@ -132,6 +134,10 @@ nabu.utils.ajax = function(parameters) {
 
 	if (parameters.target) {
 		request.target = parameters.target;
+	}
+
+	if (parameters.progress) {
+		request.onprogress = progress;
 	}
 
 	var promise = new nabu.utils.promise();
