@@ -191,7 +191,6 @@ nabu.utils.ajax = function(parameters) {
 		}
 	}
 
-//	request.setRequestHeader("Connection", "close");
 	request.setRequestHeader("Accept", "application/json, text/html");
 
 	// need to add these headers for post
@@ -201,8 +200,13 @@ nabu.utils.ajax = function(parameters) {
 			parameters.data = JSON.stringify(parameters.data);
 			parameters.contentType = "application/json";
 		}
-		request.setRequestHeader("Content-Type", parameters.contentType ? parameters.contentType : "application/x-www-form-urlencoded");
-		request.setRequestHeader("Content-Length", parameters.data.length);
+		if (!parameters.contentType) {
+			parameters.contentType = "application/x-www-form-urlencoded";
+		}
+		request.setRequestHeader("Content-Type", parameters.contentType);
+		if (parameters.binary || (parameters.contentType.startsWith("image/"))) {
+			parameters.data = nabu.utils.binary.blob(parameters.data, parameters.contentType);
+		}
 	}
 	else {
 		parameters.data = null;
@@ -316,3 +320,22 @@ nabu.utils.promises = function(promises) {
 
 	this.resolver();
 }
+
+
+nabu.utils.binary = {
+	blob: function(binaryData, contentType, sliceSize) {
+  		contentType = contentType ? contentType : "application/octet-stream";
+  		sliceSize = sliceSize ? sliceSize : 512;
+		var bytes = [];
+		for (var offset = 0; offset < binaryData.length; offset += sliceSize) {
+			var slice = binaryData.slice(offset, Math.min(offset + sliceSize, binaryData.length));
+			var byteNumbers = new Array(slice.length);
+			for (var i = 0; i < slice.length; i++) {
+				byteNumbers[i] = slice.charCodeAt(i);
+			}
+
+			bytes.push(new Uint8Array(byteNumbers));
+		}
+		return new Blob(bytes, { type: contentType });
+	}
+};
