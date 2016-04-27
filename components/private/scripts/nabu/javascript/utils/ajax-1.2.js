@@ -134,52 +134,59 @@ nabu.utils.ajax = function(parameters) {
 		request.target = parameters.target;
 	}
 
+	var promise = new nabu.utils.promise();
 	request.onreadystatechange = function() {
 		switch (request.readyState) {
-		case 0:
-			// not initialized, do nothing
+			case 0:
+				// not initialized, do nothing
 			break;
-		// request set up
-		case 1:
-			if (parameters.opened) {
-				parameters.opened(request);
-			}
+			// request set up
+			case 1:
+				if (parameters.opened) {
+					parameters.opened(request);
+				}
 			break;
-		// request sent
-		case 2:
-			if (parameters.sent) {
-				parameters.sent(request);
-			}
+			// request sent
+			case 2:
+				if (parameters.sent) {
+					parameters.sent(request);
+				}
 			break;
-		// started loading response
-		case 3:
-			if (parameters.loading) {
-				parameters.loading(request);
-			}
+			// started loading response
+			case 3:
+				if (parameters.loading) {
+					parameters.loading(request);
+				}
 			break;
-		// response loaded
-		case 4:
-			if (request.status == 200 && parameters.success) {
-				parameters.success(request);
-			}
-			else if (request.status == 200 && nabu.handlers.ajax.success) {
-				nabu.handlers.ajax.success(request);
-			}
-			else if (request.status == 200 && parameters.completed) {
-				parameters.completed(request);
-			}
-			else if (parameters.error) {
-				parameters.error(request);
-			}
-			else if (parameters.completed) {
-				parameters.completed(request);
-			}
-			else if (nabu.handlers.ajax.error) {
-				nabu.handlers.ajax.error(request);
-			}
-			else {
-				console.log("Ajax error", request);
-			}
+			// response loaded
+			case 4:
+				if (request.status == 200 && parameters.success) {
+					parameters.success(request);
+				}
+				else if (request.status == 200 && nabu.handlers.ajax.success) {
+					nabu.handlers.ajax.success(request);
+				}
+				else if (request.status == 200 && parameters.completed) {
+					parameters.completed(request);
+				}
+				else if (parameters.error) {
+					parameters.error(request);
+				}
+				else if (parameters.completed) {
+					parameters.completed(request);
+				}
+				else if (nabu.handlers.ajax.error) {
+					nabu.handlers.ajax.error(request);
+				}
+				else {
+					console.log("Ajax error", request);
+				}
+				if (request.status >= 200 && request.status < 300) {
+					promise.succeed(request);
+				}
+				else {
+					promise.fail(request);
+				}
 			break;
 		}
 	}
@@ -202,5 +209,110 @@ nabu.utils.ajax = function(parameters) {
 	}
 
 	request.send(parameters.data ? parameters.data : null);
-	return this;
+	return promise;
+}
+
+
+nabu.utils.when = function(promises) {
+	return new nabu.utils.promises(promises);
+};
+
+nabu.utils.promise = function() {
+	var self = this;
+	this.state = null;
+	this.successHandlers = [];
+	this.errorHandlers = [];
+	this.response = null;
+	this.succeed = function(response) {
+		self.response = response;
+		self.state = "success";
+		for (var i = 0; i < self.successHandlers.length; i++) {
+			self.successHandlers[i](response);
+		}
+	};
+	this.fail = function(response) {
+		self.response = response;
+		self.state = "error";
+		for (var i = 0; i < self.errorHandlers.length; i++) {
+			self.errorHandlers[i](response);
+		}
+	};
+	this.success = function(handler) {
+		self.successHandlers.push(handler);
+		// if already resolved, call immediately
+		if (self.state == "success") {
+			handler(self.response);
+		}
+		return this;
+	};
+	this.error = function(handler) {
+		self.errorHandlers.push(handler);
+		// if already resolved, call immediately
+		if (self.state == "error") {
+			handler(self.response);
+		}
+		return this;
+	};
+};
+
+nabu.utils.promises = function(promises) {
+	var self = this;
+	this.promises = promises ? promises : [];
+	this.resolution = null;
+	this.successHandlers = [];
+	this.errorHandlers = [];
+	this.state = null;
+
+	this.resolver = function() {
+		var failed = 0;
+		var succeeded = 0;
+		var responses = [];
+		for (var i = 0; i < self.promises.length; i++) {
+			if (self.promises[i].state == "success") {
+				succeeded++;
+				responses.push(self.promises[i].response);
+			}
+			else if (self.promises[i].state == "error") {
+				failed++;
+				responses.push(self.promises[i].response);
+			}
+		}
+		if (succeeded == self.promises.length) {
+			this.state = "success";
+			for (var i = 0; i < self.successHandlers.length; i++) {
+				self.successHandlers[i](responses);
+			}
+		}
+		else if (succeeded + failed == self.promises.length) {
+			this.state = "error";
+			for (var i = 0; i < self.errorHandlers.length; i++) {
+				self.errorHandlers[i](responses);
+			}
+		}
+	};
+
+	for (var i = 0; i < this.promises.length; i++) {
+		this.promises[i]
+			.success(this.resolver)
+			.error(this.resolver);
+	}
+
+	this.success = function(handler) {
+		self.successHandlers.push(handler);
+		// if already resolved, call immediately
+		if (self.state == "success") {
+			handler(self.response);
+		}
+		return this;
+	};
+	this.error = function(handler) {
+		self.errorHandlers.push(handler);
+		// if already resolved, call immediately
+		if (self.state == "error") {
+			handler(self.response);
+		}
+		return this;
+	};
+
+	this.resolver();
 }
