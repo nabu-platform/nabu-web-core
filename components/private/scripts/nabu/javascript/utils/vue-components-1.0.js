@@ -28,6 +28,7 @@ Vue.directive("inject", {
 	terminal: true,
 	bind: function() {
 		this.context = this.el.parentNode;
+		this.next = nabu.utils.elements.next(this.el);
 		// if we are directly inside a document fragment, it is rather hard to bind the generated fragment to the correct context
 		// as a workaround, we wrap the element in a div which we can use as a target
 		// note that the wrapper div is removed again once the element is appended in the correct place
@@ -72,7 +73,12 @@ Vue.directive("inject", {
 			this.context.parentNode.replaceChild(frag.node, this.context);
 		}
 		else {
-			this.context.appendChild(frag.node);
+			if (this.next) {
+				this.context.insertBefore(frag.node, this.next);
+			}
+			else {
+				this.context.appendChild(frag.node);
+			}
 		}
 	},
 	unbind: function() {
