@@ -29,6 +29,9 @@ nabu.components.List = Vue.component("n-list", {
 		}
 	},
 	methods: {
+		toggle: function(item) {
+			this.$emit("toggle", item);
+		},
 		next: function() {
 			if (this.hasNext) {
 				this.iteratorActive = true;
