@@ -16,9 +16,6 @@ Vue.mixin({
 nabu.components.Image = Vue.component("n-img", {
 	props: ["src"],
 	template: "<div class='n-img' :style=\"style\"><slot></slot></div>",
-	ready: function() {
-		console.log("SRC", this.src, this.style);
-	},
 	computed: {
 		style: function() {
 			return "background-image: url('" + this.src + "')";
