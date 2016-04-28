@@ -36,7 +36,7 @@ nabu.utils.arrays = {
 		for (var i = 0; i < array.length; i++) {
 			var matches = true;
 			for (var key in parameters) {
-				if ((parameters[key] instanceof Array && parameters[key].indexOf(array[i][key]) < 0) || (array[i][key] != parameters[key])) {
+				if ((parameters[key] instanceof Array && parameters[key].indexOf(array[i][key]) < 0) || (!(parameters[key] instanceof Array) && array[i][key] != parameters[key])) {
 					matches = false;
 					break;
 				}
