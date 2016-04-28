@@ -47,7 +47,6 @@ Vue.directive("inject", {
 		return this.factory.create(this._host, scope, this._frag);
 	},
 	update: function(newValue, oldValue) {
-		console.log("iNJECTIN", newValue, this.arg, nabu.tmp[this.arg ? this.arg : "current"]);
 		var frag = this.create(newValue, nabu.tmp[this.arg ? this.arg : "current"]);
 		this._host.$el.appendChild(frag.node);
 	},
