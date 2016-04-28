@@ -29,9 +29,19 @@ nabu.components.Image = Vue.component("n-img", {
 nabu.tmp = {}
 // Injection magic
 Vue.directive("inject", {
-	priority: 5000,
 	terminal: true,
 	bind: function() {
+		this.context = this.el.parentNode;
+		// if we are directly inside a document fragment, it is rather hard to bind the generated fragment to the correct context
+		// as a workaround, we wrap the element in a div which we can use as a target
+		// note that the wrapper div is removed again once the element is appended in the correct place
+		if (this.context instanceof DocumentFragment) {
+			var div = document.createElement("div");
+			this.context.replaceChild(div, this.el);
+			div.appendChild(this.el);
+			this.context = div;
+			this.replace = true;
+		}
  		this.factory = new Vue.FragmentFactory(this.vm, this.el);
 	},
 	create: function(key, value) {
@@ -47,14 +57,21 @@ Vue.directive("inject", {
 		return this.factory.create(this._host, scope, this._frag);
 	},
 	update: function(newValue, oldValue) {
-		var frag = this.create(newValue, nabu.tmp[this.arg ? this.arg : "current"]);
-		this._host.$el.appendChild(frag.node);
+		var frag = this.create(this.expression, nabu.tmp[this.arg ? this.arg : "current"]);
+		if (this.context instanceof DocumentFragment) {
+			this._host.$el.appendChild(frag.node);
+		}
+		else if (this.replace) {
+			this.context.parentNode.replaceChild(frag.node, this.context);
+		}
+		else {
+			this.context.appendChild(frag.node);
+		}
 	},
 	unbind: function() {
 		if (this.frag) {
 			this.frag.remove();
 		}
-		Vue.util.remove(this.anchor);
 	}
 });
 
