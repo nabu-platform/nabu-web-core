@@ -23,7 +23,6 @@ nabu.components.Image = Vue.component("n-img", {
 	}
 });
 
-nabu.tmp = {}
 // Injection magic
 Vue.directive("inject", {
 	terminal: true,
@@ -54,7 +53,18 @@ Vue.directive("inject", {
 		return this.factory.create(this._host, scope, this._frag);
 	},
 	update: function(newValue, oldValue) {
-		var frag = this.create(this.expression, nabu.tmp[this.arg ? this.arg : "current"]);
+		var value = null;
+
+		var host = this._host;
+		while(host) {
+			if (host.stored && host.stored[this.arg ? this.arg : "current"]) {
+				value = host.stored[this.arg ? this.arg : "current"];
+				break;
+			}
+			host = host._host;
+		}
+
+		var frag = this.create(this.expression, value);
 		if (this.context instanceof DocumentFragment) {
 			this._host.$el.appendChild(frag.node);
 		}
@@ -75,6 +85,17 @@ Vue.directive("inject", {
 Vue.directive("store", {
 	priority: 5000,
 	update: function(newValue, oldValue) {
-		nabu.tmp[this.arg ? this.arg : "current"] = newValue;
+		if (!this.vm.stored) {
+			this.vm.stored = {};
+		}
+		this.vm.stored[this.arg ? this.arg : "current"] = newValue;
+	}
+});
+
+Vue.directive("include", {
+	update: function(newValue, oldValue) {
+		var definition = Vue.extend({ template: '#' + newValue });
+		var component = new definition();
+		component.$mount().$appendTo(this.el);
 	}
 });
