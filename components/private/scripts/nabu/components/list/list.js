@@ -2,7 +2,7 @@ if (!nabu) { nabu = {}; }
 if (!nabu.components) { nabu.components = {}; }
 
 nabu.components.List = Vue.component("n-list", {
-	props: ["items", "selector", "toggle", "multiple", "active"],
+	props: ["items", "selector", "toggle", "multiple", "active", "minimumSelection", "maximumSelection"],
 	template: "#n-list",
 	data: function() {
 		return {
@@ -63,13 +63,19 @@ nabu.components.List = Vue.component("n-list", {
 			if (this.toggle || this.multiple) {
 				var index = this.active.indexOf(item);
 				if (index >= 0) {
-					this.active.splice(index, 1);
-					this.$emit("deactivate", item);
+					if (!this.minimumSelection || this.active.length > this.minimumSelection) {
+						this.active.splice(index, 1);
+						this.$emit("deactivate", item);
+					}
 				}
 				else {
 					// deselect others if not set to multiple
  					if (!this.multiple && this.active.length > 0) {
 						this.$emit("deactivate", this.active.pop());
+					}
+					// if we are bumping up against the maximum selection size, remove the first item
+					else if (this.active.length > 0 && this.maximumSelection && this.active.length >= this.maximumSelection) {
+						this.toggle(this.active[0]);
 					}
 					this.active.push(item);
 					this.$emit("activate", item);
