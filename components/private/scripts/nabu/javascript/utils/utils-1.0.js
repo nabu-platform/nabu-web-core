@@ -62,21 +62,42 @@ nabu.utils.arrays = {
 
 nabu.utils.objects = {
 	merge: function(original) {
-		for (var i = 1; i < arguments.length; i++) {
-			for (var key in arguments[i]) {
-				if (arguments[i][key] instanceof Array) {
-					throw "Can not merge arrays (yet)";
-				}
-				else if (typeof arguments[i][key] == "object") {
-					if (!original[key]) {
-						original[key] = arguments[i][key];
+		if (original instanceof Array) {
+			var args = [];
+			// the arguments aren't really an array, can't use default merge stuff
+			for (var i = 1; i < arguments.length; i++) {
+				args.push(arguments[i]);
+			}
+			// for each entry in the original, perform a merge
+			for (var i = 0; i < original.length; i++) {
+				args.unshift(original[i]);
+				nabu.utils.objects.merge.apply(null, args);
+				args.shift();
+			}
+		}
+		else {
+			for (var i = 1; i < arguments.length; i++) {
+				var overwrite = typeof(arguments[i].$overwrite) == "undefined" ? true : arguments[i].$overwrite;
+				for (var key in arguments[i]) {
+					if (key == "$overwrite") {
+						continue;
 					}
-					else {
-						nabu.utils.objects.merge(original[key], arguments[i][key]);
+					if (arguments[i][key] instanceof Array) {
+						throw "Can not merge arrays (yet)";
 					}
-				}
-				else if (typeof arguments[i][key] != "undefined") {
-					original[key] = arguments[i][key];
+					else if (typeof arguments[i][key] == "object") {
+						if (!original[key]) {
+							original[key] = arguments[i][key];
+						}
+						else {
+							nabu.utils.objects.merge(original[key], arguments[i][key]);
+						}
+					}
+					else if (typeof arguments[i][key] != "undefined") {
+						if (!original[key] || overwrite) {
+							original[key] = arguments[i][key];
+						}
+					}
 				}
 			}
 		}
