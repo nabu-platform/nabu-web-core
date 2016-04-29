@@ -28,6 +28,30 @@ nabu.utils.arrays = {
 		}
 		return original;
 	},
+	remove: function(array) {
+		for (var i = 1; i < arguments.length; i++) {
+			if (arguments[i] instanceof Array) {
+				for (var j = 0; j < arguments[i].length; j++) {
+					nabu.utils.arrays.remove(array, arguments[i][j]);
+				}
+			}
+			else {
+				var index = array.indexOf(arguments[i]);
+				if (index >= 0) {
+					array.splice(index, 1);
+				}
+			}
+		}
+	},
+	flatten: function(array, field, includeUndefined) {
+		var results = [];
+		for (var i = 0; i < array.length; i++) {
+			if (array[i][field] || includeUndefined) {
+				results.push(array[i][field]);
+			}
+		}
+		return results;
+	},
 	find: function(array, parameters, amount) {
 		if (typeof amount == "undefined") {
 			amount = 1;
