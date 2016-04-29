@@ -54,6 +54,9 @@ nabu.utils.arrays = {
 		else {
 			return results;
 		}
+	},
+	clear: function(array) {
+		array.splice(0, array.length);
 	}
 };
 
