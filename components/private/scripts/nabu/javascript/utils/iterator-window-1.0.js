@@ -2,13 +2,26 @@ if (!nabu) { nabu = {}; }
 if (!nabu.services) { nabu.services = {}; }
 if (!nabu.services.iterators) { nabu.services.iterators = {}; }
 
-nabu.services.iterators.Window = function(totalSize, scrollSize, loadNext, loop) {
+/*
+Parameters:
+	- totalSize: the total size of the window
+	- scrollSize: if you want to move the window, how much do you move it by, if nothing is set, it will move the window fully, for example a window of 2 would shift by 2.
+	- loadNext: a handler to load the next data, it should expect these parameters:
+		- items: the current items known by the list
+		- amount: the amount of new items to be loaded
+		- resultHandler: a function that should be called with an array of the new items once they are loaded
+	- loop: whether or not to loop
+	- initialOffset: for the initial items to be loaded, how much to offset them by, the offset should be within the scope of the items already present in the list
+*/
+nabu.services.iterators.Window = function(parameters) {
 	var self = this;
-	this.totalSize = totalSize;
-	this.scrollSize = scrollSize ? scrollSize: this.totalSize;
-	this.loadNext = loadNext;
+	this.totalSize = parameters.totalSize;
+	this.scrollSize = parameters.scrollSize ? parameters.scrollSize: this.totalSize;
+	this.loadNext = parameters.loadNext;
 	this.hasMore = true;
-	this.loop = loop;
+	this.loop = parameters.loop;
+	this.initialOffset = parameters.initialOffset ? parameters.initialOffset : 0;
+
 	this.next = function(items, selected) {
 
 		// function to lazily load new items
@@ -32,11 +45,11 @@ nabu.services.iterators.Window = function(totalSize, scrollSize, loadNext, loop)
 
 		// nothing selected yet, select first
 		if (selected.length == 0) {
-			if (items.length < self.totalSize && self.loadNext) {
-				loadNext(self.totalSize - items.length);
+			if (items.length < self.initialOffset + self.totalSize && self.loadNext) {
+				loadNext(self.totalSize + self.initialOffset - items.length);
 			}
 			else {
-				nabu.utils.arrays.merge(selected, items.slice(0, Math.min(self.totalSize, items.length)));
+				nabu.utils.arrays.merge(selected, items.slice(self.initialOffset, Math.min(self.totalSize + self.initialOffset, items.length)));
 			}
 		}
 		else {
@@ -55,7 +68,7 @@ nabu.services.iterators.Window = function(totalSize, scrollSize, loadNext, loop)
 				throw "Could not find selected item in list";
 			}
 			// there are not enough elements
-			else if (index + scrollSize >= items.length - 1 && self.loadNext) {
+			else if (index + self.scrollSize >= items.length - 1 && self.loadNext) {
 				loadNext(self.scrollSize - (items.length - 1 - index));
 			}
 			else if (index < items.length - 1) {
