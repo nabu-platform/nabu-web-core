@@ -197,6 +197,9 @@ nabu.utils.dates = {
 };
 
 nabu.utils.shim = function(object, parameters) {
+	if (!parameters) {
+		parameters = {};
+	}
 	if (object instanceof Array) {
 		// default merge true
 		if (typeof(parameters.added) == "undefined") {
@@ -209,7 +212,7 @@ nabu.utils.shim = function(object, parameters) {
 
 		var shim = [];
 		for (var i = 0; i < object.length; i++) {
-			shim[i] = nabu.utils.shim(objects[i]);
+			shim[i] = nabu.utils.shim(object[i]);
 		}
 		shim.pushed = [];
 		shim.unshifted = [];
@@ -248,7 +251,7 @@ nabu.utils.shim = function(object, parameters) {
 			shim.spliced.push({
 				starting: shim[index],
 				added: arguments.slice(2),
-				removed: oldSplice.apply(null, arguments);
+				removed: oldSplice.apply(null, arguments)
 			});
 		};
 		shim.$commit = function() {
@@ -306,9 +309,9 @@ nabu.utils.shim = function(object, parameters) {
 				}
 			}
 			// apply the merge where possible
-			for (var i = 0; i < object.length; i++) {
-				if (object[i].$commit) {
-					object[i].$commit();
+			for (var i = 0; i < shim.length; i++) {
+				if (shim[i].$commit) {
+					shim[i].$commit();
 				}
 			}
 		};
