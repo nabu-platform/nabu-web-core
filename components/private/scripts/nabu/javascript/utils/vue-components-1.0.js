@@ -105,3 +105,13 @@ Vue.directive("include", {
 		component.$mount().$appendTo(this.el);
 	}
 });
+/*
+Vue.directive("scroll-left", {
+	update: function(newValue, oldValue) {
+		var self = this;
+		// scroll right
+		this.vm[newValue] = function() {
+			self.el.s
+		};
+	}
+}); */

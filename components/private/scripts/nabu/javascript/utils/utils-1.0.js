@@ -195,3 +195,162 @@ nabu.utils.dates = {
 		return day;
 	}
 };
+
+nabu.utils.shim = function(object, parameters) {
+	if (object instanceof Array) {
+		// default merge true
+		if (typeof(parameters.added) == "undefined") {
+			parameters.added = true;
+		}
+		// default merge removed
+		if (typeof(parameters.removed) == "undefined") {
+			parameters.removed = true;
+		}
+
+		var shim = [];
+		for (var i = 0; i < object.length; i++) {
+			shim[i] = nabu.utils.shim(objects[i]);
+		}
+		shim.pushed = [];
+		shim.unshifted = [];
+		shim.popped = [];
+		shim.shifted = [];
+		shim.spliced = [];
+		if (parameters.added) {
+			// wrap the push
+			var oldPush = shim.push;
+			shim.push = function() {
+				shim.pushed.push.apply(null, arguments);
+				oldPush.apply(null, arguments);
+			};
+			// wrap the unshift
+			var oldUnshift = shim.unshift;
+			shim.push = function() {
+				shim.unshifted.push.apply(null, arguments);
+				oldUnshift.apply(null, arguments);
+			};
+		}
+		if (parameters.removed) {
+			// wrap the pop
+			var oldPop = shim.pop;
+			shim.pop = function() {
+				shim.popped.push(oldPop.apply(null, arguments));
+			};
+			// wrap the shift
+			var oldShift = shim.shift;
+			shim.shift = function() {
+				shim.shifted.push(oldShift.apply(null, arguments));
+			};
+		}
+		// splice is slightly tricker so use with caution
+		var oldSplice = shim.splice;
+		shim.splice = function(index, length) {
+			shim.spliced.push({
+				starting: shim[index],
+				added: arguments.slice(2),
+				removed: oldSplice.apply(null, arguments);
+			});
+		};
+		shim.$commit = function() {
+			if (shim.pushed) {
+				for (var i = 0; i < shim.pushed.length; i++) {
+					object.push(shim.pushed[i]);
+				}
+			}
+			if (shim.popped) {
+				for (var i = 0; i < shim.popped.length; i++) {
+					var index = object.indexOf(shim.popped[i]);
+					if (index >= 0) {
+						object.splice(index, 1);
+					}
+					else {
+						console.log("Can not find popped element", shim.shifted[i]);
+					}
+				}
+			}
+			if (shim.unshifted) {
+				for (var i = 0; i < shim.unshifted.length; i++) {
+					object.unshift(shim.unshifted[i]);
+				}
+			}
+			if (shim.shifted) {
+				for (var i = 0; i < shim.shifted.length; i++) {
+					var index = object.indexOf(shim.shifted[i]);
+					if (index >= 0) {
+						object.splice(index, 1);
+					}
+					else {
+						console.log("Can not find shifted element", shim.shifted[i]);
+					}
+				}
+			}
+			if (shim.spliced) {
+				for (var i = 0; i < shim.spliced.length; i++) {
+					var index = object.indexOf(shim.spliced[i].starting);
+					if (index >= 0) {
+						// splice in the new stuff
+						object.splice(index, 0, shim.spliced[i].added);
+						for (var j = 0; j < shim.spliced[i].removed.length; j++) {
+							index = object.indexOf(shim.spliced[i].removed[j]);
+							if (index >= 0) {
+								object.splice(index, 1);
+							}
+							else {
+								console.log("Can not find spliced element", shim.spliced[i].removed[j]);
+							}
+						}
+					}
+					else {
+						console.log("Can not find splice start poing", shim.spliced[i].starting);
+					}
+				}
+			}
+			// apply the merge where possible
+			for (var i = 0; i < object.length; i++) {
+				if (object[i].$commit) {
+					object[i].$commit();
+				}
+			}
+		};
+		shim.$rollback = function() {
+			// reset elements
+			shim.splice(0, shim.length, object);
+			// reset arrays
+			shim.pushed = [];
+			shim.unshifted = [];
+			shim.popped = [];
+			shim.shifted = [];
+			shim.spliced = [];
+		};
+	}
+	else if (typeof(object) == "object") {
+		// create a new object to hold updates
+		var newObject = {};
+		newObject.$rollback = function() {
+			for (var key in object) {
+				// recursively shim
+				if (object[key] instanceof Array || typeof(object[key]) == "object") {
+					newObject[key] = nabu.utils.shim(object[key]);
+				}
+				else {
+					newObject[key] = object[key];
+				}
+			}
+		}
+		newObject.$rollback();
+		newObject.$commit = function() {
+			// merge the new stuff in
+			for (var key in newObject) {
+				if (newObject[key] instanceof Array || typeof(newObject[key]) == "object") {
+					newObject[key].$commit();
+				}
+				else {
+					object[key] = newObject[key];
+				}
+			}
+		}
+	}
+	else {
+		throw "Can only shim arrays of objects or objects";
+	}
+};
