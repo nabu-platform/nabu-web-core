@@ -322,33 +322,35 @@ nabu.utils.shim = function(object, parameters) {
 			shim.shifted = [];
 			shim.spliced = [];
 		};
+		return shim;
 	}
 	else if (typeof(object) == "object") {
 		// create a new object to hold updates
-		var newObject = {};
-		newObject.$rollback = function() {
+		var shim = {};
+		shim.$rollback = function() {
 			for (var key in object) {
 				// recursively shim
 				if (object[key] instanceof Array || typeof(object[key]) == "object") {
-					newObject[key] = nabu.utils.shim(object[key]);
+					shim[key] = nabu.utils.shim(object[key]);
 				}
 				else {
-					newObject[key] = object[key];
+					shim[key] = object[key];
 				}
 			}
 		}
-		newObject.$rollback();
-		newObject.$commit = function() {
+		shim.$rollback();
+		shim.$commit = function() {
 			// merge the new stuff in
-			for (var key in newObject) {
-				if (newObject[key] instanceof Array || typeof(newObject[key]) == "object") {
-					newObject[key].$commit();
+			for (var key in shim) {
+				if (shim[key] instanceof Array || typeof(shim[key]) == "object") {
+					shim[key].$commit();
 				}
 				else {
-					object[key] = newObject[key];
+					object[key] = shim[key];
 				}
 			}
 		}
+		return shim;
 	}
 	else {
 		throw "Can only shim arrays of objects or objects";
