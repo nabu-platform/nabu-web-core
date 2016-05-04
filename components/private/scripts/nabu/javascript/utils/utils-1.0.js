@@ -219,14 +219,22 @@ nabu.utils.shim = function(object, parameters) {
 
 		var shim = [];
 		shim.$original = object;
-		for (var i = 0; i < object.length; i++) {
-			shim[i] = !parameters.shallow ? nabu.utils.shim(object[i]) : object[i];
-		}
-		shim.pushed = [];
-		shim.unshifted = [];
-		shim.popped = [];
-		shim.shifted = [];
-		shim.spliced = [];
+		var initialize = function() {
+			for (var i = 0; i < object.length; i++) {
+				if (!parameters.shallow && (object[i] instanceof Array || typeof(object[i]) == "object")) {
+					shim.push(nabu.utils.shim(object[i]));
+				}
+				else {
+					shim.push(object[i]);
+				}
+			}
+			shim.pushed = [];
+			shim.unshifted = [];
+			shim.popped = [];
+			shim.shifted = [];
+			shim.spliced = [];
+		};
+		initialize();
 		if (parameters.added) {
 			// wrap the push
 			var oldPush = shim.push;
@@ -273,6 +281,7 @@ nabu.utils.shim = function(object, parameters) {
 				added: args,
 				removed: oldSplice.apply(shim, arguments)
 			});
+			parameters.observer(this);
 		};
 		shim.$commit = function() {
 			if (shim.pushed) {
@@ -312,14 +321,19 @@ nabu.utils.shim = function(object, parameters) {
 					var index = object.indexOf(shim.spliced[i].starting.$original);
 					if (index >= 0) {
 						// splice in the new stuff
-						object.splice(index, 0, shim.spliced[i].added);
-						for (var j = 0; j < shim.spliced[i].removed.length; j++) {
-							index = object.indexOf(shim.spliced[i].removed[j].$original);
-							if (index >= 0) {
-								object.splice(index, 1);
-							}
-							else {
-								console.log("Can not find spliced element", shim.spliced[i].removed[j]);
+						if (parameters.added) {
+							object.splice.bind(object, index, 0).apply(object, shim.spliced[i].added);
+						}
+						// remove old stuff
+						if (parameters.removed) {
+							for (var j = 0; j < shim.spliced[i].removed.length; j++) {
+								index = object.indexOf(shim.spliced[i].removed[j].$original);
+								if (index >= 0) {
+									object.splice(index, 1);
+								}
+								else {
+									console.log("Can not find spliced element", shim.spliced[i].removed[j]);
+								}
 							}
 						}
 					}
@@ -338,22 +352,8 @@ nabu.utils.shim = function(object, parameters) {
 		shim.$rollback = function() {
 			// reset elements
 			shim.splice(0, shim.length);
-			console.log("SPLICED " + shim.splice);
-/* 			for (var i = 0; i < object.length; i++) {
-				if (object[i] instanceof Array || typeof(object[i]) == "object") {
-					shim.push(nabu.utils.shim(object[i]));
-				}
-				else {
-					shim.push(object[i]);
-				}
-			} */
-			console.log("ROLLING BACK", shim);
-			// reset arrays
-			shim.pushed = [];
-			shim.unshifted = [];
-			shim.popped = [];
-			shim.shifted = [];
-			shim.spliced = [];
+			// reinitialize
+			initialize();
 		};
 		return shim;
 	}
