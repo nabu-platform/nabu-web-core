@@ -201,6 +201,7 @@ nabu.utils.shim = function(object, parameters) {
 		parameters = {};
 	}
 	if (!parameters.observer) {
+		// defaults to the vuejs observer
 		parameters.observer = function(context) {
 			if (context.__ob__ && context.__ob__.dep && context.__ob__.dep.notify) {
 				context.__ob__.dep.notify();
