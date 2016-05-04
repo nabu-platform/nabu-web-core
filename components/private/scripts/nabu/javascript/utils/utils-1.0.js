@@ -200,6 +200,13 @@ nabu.utils.shim = function(object, parameters) {
 	if (!parameters) {
 		parameters = {};
 	}
+	if (!parameters.observer) {
+		parameters.observer = function(context) {
+			if (context.__ob__ && context.__ob__.dep && context.__ob__.dep.notify) {
+				context.__ob__.dep.notify();
+			}
+		}
+	}
 	if (object instanceof Array) {
 		// default merge true
 		if (typeof(parameters.added) == "undefined") {
@@ -211,8 +218,9 @@ nabu.utils.shim = function(object, parameters) {
 		}
 
 		var shim = [];
+		shim.$original = object;
 		for (var i = 0; i < object.length; i++) {
-			shim[i] = nabu.utils.shim(object[i]);
+			shim[i] = !parameters.shallow ? nabu.utils.shim(object[i]) : object[i];
 		}
 		shim.pushed = [];
 		shim.unshifted = [];
@@ -223,35 +231,47 @@ nabu.utils.shim = function(object, parameters) {
 			// wrap the push
 			var oldPush = shim.push;
 			shim.push = function() {
-				shim.pushed.push.apply(null, arguments);
-				oldPush.apply(null, arguments);
+				shim.pushed.push.apply(shim.pushed, arguments);
+				oldPush.apply(shim, arguments);
+				parameters.observer(this);
 			};
 			// wrap the unshift
 			var oldUnshift = shim.unshift;
-			shim.push = function() {
-				shim.unshifted.push.apply(null, arguments);
-				oldUnshift.apply(null, arguments);
+			shim.unshift = function() {
+				shim.unshifted.push.apply(shim.unshifted, arguments);
+				oldUnshift.apply(shim, arguments);
+				parameters.observer(this);
 			};
 		}
 		if (parameters.removed) {
 			// wrap the pop
 			var oldPop = shim.pop;
 			shim.pop = function() {
-				shim.popped.push(oldPop.apply(null, arguments));
+				var popped = oldPop.apply(shim);
+				if (popped) {
+					shim.popped.push(popped);
+					parameters.observer(this);
+				}
 			};
 			// wrap the shift
 			var oldShift = shim.shift;
 			shim.shift = function() {
-				shim.shifted.push(oldShift.apply(null, arguments));
+				shim.shifted.push(oldShift.apply(shim));
+				parameters.observer(this);
 			};
 		}
 		// splice is slightly tricker so use with caution
 		var oldSplice = shim.splice;
+		shim.oldSplice = oldSplice;
 		shim.splice = function(index, length) {
+			var args = [];
+			for (var i = 2; i < arguments.length; i++) {
+				args.push(arguments[i]);
+			}
 			shim.spliced.push({
 				starting: shim[index],
-				added: arguments.slice(2),
-				removed: oldSplice.apply(null, arguments)
+				added: args,
+				removed: oldSplice.apply(shim, arguments)
 			});
 		};
 		shim.$commit = function() {
@@ -262,7 +282,7 @@ nabu.utils.shim = function(object, parameters) {
 			}
 			if (shim.popped) {
 				for (var i = 0; i < shim.popped.length; i++) {
-					var index = object.indexOf(shim.popped[i]);
+					var index = object.indexOf(shim.popped[i].$original);
 					if (index >= 0) {
 						object.splice(index, 1);
 					}
@@ -278,7 +298,7 @@ nabu.utils.shim = function(object, parameters) {
 			}
 			if (shim.shifted) {
 				for (var i = 0; i < shim.shifted.length; i++) {
-					var index = object.indexOf(shim.shifted[i]);
+					var index = object.indexOf(shim.shifted[i].$original);
 					if (index >= 0) {
 						object.splice(index, 1);
 					}
@@ -289,12 +309,12 @@ nabu.utils.shim = function(object, parameters) {
 			}
 			if (shim.spliced) {
 				for (var i = 0; i < shim.spliced.length; i++) {
-					var index = object.indexOf(shim.spliced[i].starting);
+					var index = object.indexOf(shim.spliced[i].starting.$original);
 					if (index >= 0) {
 						// splice in the new stuff
 						object.splice(index, 0, shim.spliced[i].added);
 						for (var j = 0; j < shim.spliced[i].removed.length; j++) {
-							index = object.indexOf(shim.spliced[i].removed[j]);
+							index = object.indexOf(shim.spliced[i].removed[j].$original);
 							if (index >= 0) {
 								object.splice(index, 1);
 							}
@@ -317,7 +337,17 @@ nabu.utils.shim = function(object, parameters) {
 		};
 		shim.$rollback = function() {
 			// reset elements
-			shim.splice(0, shim.length, object);
+			shim.splice(0, shim.length);
+			console.log("SPLICED " + shim.splice);
+/* 			for (var i = 0; i < object.length; i++) {
+				if (object[i] instanceof Array || typeof(object[i]) == "object") {
+					shim.push(nabu.utils.shim(object[i]));
+				}
+				else {
+					shim.push(object[i]);
+				}
+			} */
+			console.log("ROLLING BACK", shim);
 			// reset arrays
 			shim.pushed = [];
 			shim.unshifted = [];
@@ -330,6 +360,7 @@ nabu.utils.shim = function(object, parameters) {
 	else if (typeof(object) == "object") {
 		// create a new object to hold updates
 		var shim = {};
+		shim.$original = object;
 		shim.$rollback = function() {
 			for (var key in object) {
 				// recursively shim
@@ -345,6 +376,10 @@ nabu.utils.shim = function(object, parameters) {
 		shim.$commit = function() {
 			// merge the new stuff in
 			for (var key in shim) {
+				// don't merge back inserted
+				if (key.substring(0, 1) == "$") {
+					continue;
+				}
 				if (shim[key] instanceof Array || typeof(shim[key]) == "object") {
 					shim[key].$commit();
 				}
