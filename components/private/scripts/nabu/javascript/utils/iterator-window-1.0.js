@@ -143,7 +143,7 @@ nabu.services.iterators.Window = function(parameters) {
 		}
 		else if (this.totalSize > selected.length) {
 			var index = items.indexOf(selected[selected.length - 1]);
-			nabu.utils.arrays.merge(selected, items.slice(index + 1, Math.min(index + 1 + (this.totalSize - selected.length), items.length - index)));
+			nabu.utils.arrays.merge(selected, items.slice(index + 1, index + 1 + Math.min((this.totalSize - selected.length), items.length - index)));
 		}
 	}
 }
