@@ -2,7 +2,7 @@ if (!nabu) { nabu = {}; }
 if (!nabu.components) { nabu.components = {}; }
 
 nabu.components.List = Vue.component("n-list", {
-	props: ["items", "selector", "toggle", "multiple", "active", "minimumSelection", "maximumSelection"],
+	props: ["items", "selector", "toggle", "multiple", "active", "minimumSelection", "maximumSelection", "autosize"],
 	template: "#n-list",
 	data: function() {
 		return {
@@ -27,8 +27,29 @@ nabu.components.List = Vue.component("n-list", {
 				divs[0].scrollIntoView();
 			}
 		}
+		this.resize();
+		// register a resize event listener
+		if (this.autosize && this.$window && this.selector.autosize) {
+			this.$window.addEventListener("resize", this.resize);
+		}
 	},
 	methods: {
+		getOptimalHorizontalAmountOfItems: function() {
+			// get the target by classname
+			var target = this.$el.getElementsByClassName("n-list-items")[0];
+			// total width
+			var width = this.$el.offsetWidth;
+			// deduct the width of the children that are not the target
+			for (var i = 0; i < this.$el.children.length; i++) {
+				if (this.$el.children[i] != target) {
+					width -= this.$el.children[i].offsetWidth;
+				}
+			}
+			// based on the target width, estimate average child size
+			var averageChildWidth = Math.ceil(target.offsetWidth / this.selected.length);
+			// based on average child size, deduce the optimal amount of children
+			return Math.floor(width / averageChildWidth);
+		},
 		toggle: function(item) {
 			this.$emit("toggle", item);
 		},
@@ -48,6 +69,14 @@ nabu.components.List = Vue.component("n-list", {
 		},
 		activated: function(item) {
 			return this.active.indexOf(item) >= 0;
+		},
+		resize: function() {
+			if (this.autosize && this.selector.autosize) {
+				var amount = this.getOptimalHorizontalAmountOfItems();
+				if (amount != Infinity && !isNaN(amount) && amount > 0 && this.selected.length != amount) {
+					this.selector.autosize(this.items, this.selected, amount);
+				}
+			}
 		}
 	},
 	computed: {
@@ -93,6 +122,9 @@ nabu.components.List = Vue.component("n-list", {
 				this.selected.splice(0, this.selected.length);
 				this.selector.next(this.items, this.selected);
 			}
+		},
+		selected: function() {
+			this.resize();
 		},
 		active: function(newValue) {
 			if (!(newValue instanceof Array)) {

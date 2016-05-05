@@ -135,4 +135,15 @@ nabu.services.iterators.Window = function(parameters) {
 		}
 		return selected.length > 0 && items.indexOf(selected[0]) > 0;
 	};
+	this.autosize = function(items, selected, amountOfChildren) {
+		this.totalSize = amountOfChildren;
+		// remove the last from selected
+		if (this.totalSize < selected.length) {
+			selected.splice(this.totalSize);
+		}
+		else if (this.totalSize > selected.length) {
+			var index = items.indexOf(selected[selected.length - 1]);
+			nabu.utils.arrays.merge(selected, items.slice(index + 1, Math.min(index + 1 + (this.totalSize - selected.length), items.length - index)));
+		}
+	}
 }
