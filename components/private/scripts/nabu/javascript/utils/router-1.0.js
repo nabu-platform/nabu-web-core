@@ -13,6 +13,9 @@ router.register({
 	url: "/path/to/{myVar}/{myOtherVar}
 });
 
+When creating a router instance you can pass in a global enter/leave method.
+These global methods are called with exactly the same parameters as the route-specific enter/leaves but adds one more parameter at the end: the return of the specific enter/leave (if any)
+
 TODO:
 - differentiate the "current route" per anchor instead of globally
 - allow updates of the URL only if the route is in the default anchor
@@ -51,15 +54,16 @@ nabu.services.Router = function(parameters) {
 		if (chosenRoute == null) {
 			throw "Unknown route: " + alias;
 		}
+		var leaveReturn = null;
 		if (self.current && self.current.route.leave) {
-			self.current.route.leave(anchor, self.current.parameters, chosenRoute, parameters);
+			leaveReturn = self.current.route.leave(anchor, self.current.parameters, chosenRoute, parameters);
 		}
 		if (self.leave != null) {
-			self.leave(anchor, self.current.parameters, chosenRoute, parameters);
+			self.leave(anchor, self.current.parameters, chosenRoute, parameters, leaveReturn);
 		}
-		chosenRoute.enter(anchor, parameters, self.current ? self.current.route : null, self.current ? self.current.parameters : null);
+		var enterReturn = chosenRoute.enter(anchor, parameters, self.current ? self.current.route : null, self.current ? self.current.parameters : null);
 		if (self.enter != null) {
-			self.enter(anchor, parameters, self.current ? self.current.route : null, self.current ? self.current.parameters : null);
+			self.enter(anchor, parameters, self.current ? self.current.route : null, self.current ? self.current.parameters : null, enterReturn);
 		}
 		self.current = {
 			route: chosenRoute,

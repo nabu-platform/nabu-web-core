@@ -10,7 +10,6 @@ nabu.services.VueRouter = function(parameters) {
 	this.router = new nabu.services.Router(parameters);
 
 	this.route = function(alias, parameters, anchor) {
-		console.log('routing',alias, parameters, anchor);
 		this.initialize();
 		self.router.route(alias, parameters, anchor);
 	}
@@ -88,6 +87,7 @@ nabu.services.VueRouter = function(parameters) {
 						complete();
 					}
 				}
+				return component;
 			};
 		}
 		var originalLeave = route.leave;
