@@ -2,7 +2,7 @@ if (!nabu) { nabu = {}; }
 if (!nabu.components) { nabu.components = {}; }
 
 nabu.components.List = Vue.component("n-list", {
-	props: ["items", "selector", "toggle", "multiple", "active", "minimumSelection", "maximumSelection", "autosize"],
+	props: ["items", "selector", "toggle", "multiple", "active", "minimumSelection", "maximumSelection", "autosize", "forceNavigationSlots"],
 	template: "#n-list",
 	data: function() {
 		return {
