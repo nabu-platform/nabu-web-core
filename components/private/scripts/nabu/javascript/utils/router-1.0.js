@@ -36,6 +36,15 @@ nabu.services.Router = function(parameters) {
 	this.leave = parameters.leave ? parameters.leave : null;
 	this.unknown = parameters.unknown ? parameters.unknown : null;
 
+	this.changingHash = false;
+
+	// listen to hash changes
+	window.addEventListener("hashchange", function() {
+		if (self.useHash && !self.changingHash) {
+			self.routeInitial();
+		}
+	}, false);
+
 	// route to a new alias
 	this.route = function(alias, parameters, anchor) {
 		if (!anchor) {
@@ -76,7 +85,9 @@ nabu.services.Router = function(parameters) {
 				url = url.replace("{" + key + "}", parameters[key]);
 			}
 			if (self.useHash) {
+				self.changingHash = true;
 				window.location.hash = "#" + url;
+				self.changingHash = false;
 			}
 			else if (window.history) {
 				window.history.pushState({}, chosenRoute.alias, url);
