@@ -9,9 +9,9 @@ nabu.services.VueRouter = function(parameters) {
 	this.components = {};
 	this.router = new nabu.services.Router(parameters);
 
-	this.route = function(alias, parameters, anchor) {
+	this.route = function(alias, parameters, anchor, mask) {
 		this.initialize();
-		self.router.route(alias, parameters, anchor);
+		self.router.route(alias, parameters, anchor, mask);
 	}
 	this.routeInitial = function(anchor) {
 		this.initialize();
@@ -28,7 +28,7 @@ nabu.services.VueRouter = function(parameters) {
 			route.enter = function(anchorName, parameters, previousRoute, previousParameters) {
 				var anchor = nabu.utils.anchors.find(anchorName);
 				if (!anchor) {
-					throw "Can not route to unknown anchor: " + anchorName;
+					anchor = document.getElementById(anchorName);
 				}
 				var component = originalEnter(parameters, previousRoute, previousParameters);
 				// if we have a return value, we need to add it to the anchor
@@ -43,29 +43,36 @@ nabu.services.VueRouter = function(parameters) {
 						component = new self.components[component]({ data: parameters });
 					}
 					// a function to complete the appending of the component to the anchor
-					var complete = function() {
+					var complete = function(resolvedContent) {
+						if (resolvedContent) {
+							component = resolvedContent;
+						}
+						var element = anchor.$el ? anchor.$el : anchor;
 						// unless we explicitly want to append content, wipe the current content
-						if (!route.append) {
+						if (!route.append && anchor.clear) {
 							anchor.clear();
 						}
 						// it's a vue component
 						if (component.$appendTo) {
-							component.$appendTo(anchor.$el);
+							component.$appendTo(element);
+						}
+						else if (typeof(component) == "string") {
+							element.innerHTML = component;
 						}
 						// we assume it's a html element
 						else {
-							anchor.$el.appendChild(component);
+							element.appendChild(component);
 						}
 						// enrich the anchor with contextually relevant information
-						anchor.$el.setAttribute("route", route.alias);
+						element.setAttribute("route", route.alias);
 						if (component.$options && component.$options.template) {
 							if (component.$options.template.substring(0, 1) == "#") {
 								var id = component.$options.template.substring(1);
-								anchor.$el.setAttribute("template", id);
+								element.setAttribute("template", id);
 								var template = document.getElementById(id);
 								for (var i = 0; i < template.attributes.length; i++) {
 									if (template.attributes[i].name != "id") {
-										anchor.$el.setAttribute(template.attributes[i].name, template.attributes[i].value);
+										element.setAttribute(template.attributes[i].name, template.attributes[i].value);
 									}
 								}
 							}
@@ -73,10 +80,24 @@ nabu.services.VueRouter = function(parameters) {
 					};
 					// it's a vue component
 					if (component.$mount) {
-						var mounted = component.$mount();
+						var mounted = null;
+						if (!component.$el) {
+							mounted = component.$mount();
+						}
+						else {
+							component.$remove();
+							mounted = component;
+						}
+// 						var mounted = !component.$el ? component.$mount() : component;
 						// if we have an activate method, call it, it can perform asynchronous actions
 						if (mounted.$options.activate) {
-							mounted.$options.activate.call(component, complete);
+							if (mounted.$options.activate instanceof Array) {
+								// TODO: loop over them and use a combined promise
+								mounted.$options.activate[0].call(component, complete);
+							}
+							else {
+								mounted.$options.activate.call(component, complete);
+							}
 						}
 						else {
 							complete();
@@ -84,7 +105,15 @@ nabu.services.VueRouter = function(parameters) {
 					}
 					// for HTML components we simply stop
 					else {
-						complete();
+						// it's a promise
+						if (component.success) {
+							component.success(function(result) {
+								complete(result.responseText);
+							});
+						}
+						else {
+							complete();
+						}
 					}
 				}
 				return component;

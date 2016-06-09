@@ -46,7 +46,7 @@ nabu.services.Router = function(parameters) {
 	}, false);
 
 	// route to a new alias
-	this.route = function(alias, parameters, anchor) {
+	this.route = function(alias, parameters, anchor, mask) {
 		if (!anchor) {
 			anchor = self.defaultAnchor;
 		}
@@ -79,11 +79,12 @@ nabu.services.Router = function(parameters) {
 			parameters: parameters
 		};
 		// update the current URL if the state has a URL attached to it
-		if (chosenRoute.url) {
+		if (chosenRoute.url && !mask) {
 			var url = chosenRoute.url;
 			for (var key in parameters) {
-				url = url.replace("{" + key + "}", parameters[key]);
+				url = url.replace(new RegExp("{[\s]*" + key + "[\s]*:[^}]+}"), parameters[key]).replace(new RegExp("{[\s]*" + key + "[\s]*}"), parameters[key]);
 			}
+			url = url.replace(/[\/]{2,}/, "/");
 			if (self.useHash) {
 				self.changingHash = true;
 				window.location.hash = "#" + url;
@@ -95,15 +96,15 @@ nabu.services.Router = function(parameters) {
 		}
 	};
 
-	this.findRoute = function(path) {
+	this.findRoute = function(path, initial) {
 		if (!path) {
 			path = "/";
 		}
 		var chosenRoute = null;
 		var parameters = {};
 		for (var i = 0; i < self.routes.length; i++) {
-			if (self.routes[i].url) {
-				var template = "^" + self.routes[i].url.replace(/\{[^}]+\}/g, "([^/]+)") + "$";
+			if (self.routes[i].url && ((!initial && !self.routes[i].initial) || (initial && self.routes[i].initial))) {
+				var template = "^" + self.routes[i].url.replace(/\{[\s]*[^}:]+[\s]*:[\s]*([^}]+)[\s]*\}/g, "($1)").replace(/\{[\s]*[^}]+[\s]*\}/g, "([^/]+)") + "$";
 				var matches = path.match(template);
 				if (matches) {
 					var variables = self.routes[i].url.match(template);
@@ -115,7 +116,7 @@ nabu.services.Router = function(parameters) {
 					}
 					// the first hit is the entire string
 					for (var j = 1; j < variables.length; j++) {
-						parameters[variables[j].substring(1, variables[j].length - 1)] = matches[j];
+						parameters[variables[j].substring(1, variables[j].length - 1).replace(/:.*$/, "")] = matches[j];
 					}
 					chosenRoute = self.routes[i];
 					break;
@@ -133,6 +134,18 @@ nabu.services.Router = function(parameters) {
 		if (!anchor) {
 			anchor = self.defaultAnchor;
 		}
+		var initial = null;
+		// check for initial route to build framework around data
+		if (self.useHash) {
+			initial = self.findRoute(window.location.hash && window.location.hash.length > 1 ? window.location.hash.substring(1) : "/", true);
+		}
+		else {
+			initial = self.findRoute(window.location.pathname ? window.location.pathname : "/", true);
+		}
+		if (initial != null) {
+			initial.route.enter("body", initial.parameters, null, null);
+		}
+		// check for actual data route
 		if (self.useHash) {
 			self.current = self.findRoute(window.location.hash && window.location.hash.length > 1 ? window.location.hash.substring(1) : "/");
 		}
