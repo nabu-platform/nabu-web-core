@@ -49,8 +49,13 @@ nabu.services.VueRouter = function(parameters) {
 						}
 						var element = anchor.$el ? anchor.$el : anchor;
 						// unless we explicitly want to append content, wipe the current content
-						if (!route.append && anchor.clear) {
-							anchor.clear();
+						if (!route.append) {
+							if (anchor.clear) {
+								anchor.clear();
+							}
+							else if (element) {
+								nabu.utils.elements.clear(element);
+							}
 						}
 						// it's a vue component
 						if (component.$appendTo) {
@@ -76,6 +81,9 @@ nabu.services.VueRouter = function(parameters) {
 									}
 								}
 							}
+						}
+						if (route.ready) {
+							route.ready(parameters, previousRoute, previousParameters);
 						}
 					};
 					// it's a vue component
