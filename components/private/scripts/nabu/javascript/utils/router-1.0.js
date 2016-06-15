@@ -40,8 +40,13 @@ nabu.services.Router = function(parameters) {
 
 	// listen to hash changes
 	window.addEventListener("hashchange", function() {
-		if (self.useHash && !self.changingHash) {
-			self.routeInitial();
+		if (self.useHash) {
+			if (!self.changingHash) {
+				self.routeInitial();
+			}
+			else {
+				self.changingHash = false;
+			}
 		}
 	}, false);
 
@@ -88,7 +93,6 @@ nabu.services.Router = function(parameters) {
 			if (self.useHash) {
 				self.changingHash = true;
 				window.location.hash = "#" + url;
-				self.changingHash = false;
 			}
 			else if (window.history) {
 				window.history.pushState({}, chosenRoute.alias, url);
