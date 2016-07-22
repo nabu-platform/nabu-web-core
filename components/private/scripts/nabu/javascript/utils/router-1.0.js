@@ -57,7 +57,7 @@ nabu.services.Router = function(parameters) {
 		}
 		var chosenRoute = null;
 		for (var i = 0; i < self.routes.length; i++) {
-			if (self.routes[i].alias == alias) {
+			if (self.routes[i].alias == alias && !self.routes[i].initial) {
 				chosenRoute = self.routes[i];
 				break;
 			}
