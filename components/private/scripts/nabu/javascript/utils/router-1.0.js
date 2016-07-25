@@ -149,6 +149,15 @@ nabu.services.Router = function(parameters) {
 		if (initial != null) {
 			initial.route.enter("body", initial.parameters, null, null);
 		}
+		// look for an initial route that has no url, it is the default initial
+		else {
+			for (var i = 0; i < self.routes.length; i++) {
+				if (self.routes[i].initial && !self.routes[i].url) {
+					self.routes[i].enter("body", self.routes[i].parameters, null, null);
+					break;
+				}	
+			}
+		}
 		// check for actual data route
 		if (self.useHash) {
 			self.current = self.findRoute(window.location.hash && window.location.hash.length > 1 ? window.location.hash.substring(1) : "/");
