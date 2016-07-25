@@ -1,0 +1,12 @@
+<structure name="pipeline">
+    <structure name="input">
+        <field name="realm" type="java.lang.String"/>
+        <field name="name" type="java.lang.String"/>
+        <field name="password" type="java.lang.String"/>
+        <field name="salt" type="java.lang.String"/>
+        <field minOccurs="0" name="algorithm" type="be.nabu.utils.security.DigestAlgorithm"/>
+    </structure>
+    <structure name="output">
+        <field name="hash" type="java.lang.String"/>
+    </structure>
+</structure>
