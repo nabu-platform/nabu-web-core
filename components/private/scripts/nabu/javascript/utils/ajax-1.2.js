@@ -200,7 +200,7 @@ nabu.utils.ajax = function(parameters) {
 	request.setRequestHeader("Accept", "application/json, text/html");
 
 	// need to add these headers for post
-	if (parameters.method == "POST" || parameters.method.toUpperCase() == "PUT" || parameters.method.toUpperCase() == "DELETE") {
+	if (parameters.method.toUpperCase() == "POST" || parameters.method.toUpperCase() == "PUT" || parameters.method.toUpperCase() == "DELETE") {
 		// if we are sending an object as data, jsonify it
 		if (parameters.data && typeof(parameters.data) == "object") {
 			parameters.data = JSON.stringify(parameters.data);
