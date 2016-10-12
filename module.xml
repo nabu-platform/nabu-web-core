@@ -1,6 +1,0 @@
-<module>
-	<id>nabu.web.core</id>
-	<name>Core components</name>
-	<description>Adds core components to nabu</description>
-	<version>1.0</version>
-</module>
