@@ -1,7 +1,4 @@
 string [] scripts ?= resources()
 
-# Filter out older version of vuejs
-scripts = filter(lambda(x, x != "vue-1.0.21.js"), scripts)
-
 for (script : scripts)
-	echo(string(script, false) + "\n")
+	echo(resource(script), "\n")

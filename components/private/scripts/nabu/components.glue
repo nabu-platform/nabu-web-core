@@ -2,4 +2,4 @@ type ?= "js"
 
 for (resource : resources())
 	if (resource ~ ".*\." + type)
-		echo(string(resource) + "\n")
+		echo(resource(resource), "\n")
