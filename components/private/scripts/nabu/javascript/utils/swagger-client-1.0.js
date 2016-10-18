@@ -65,6 +65,30 @@ nabu.services.SwaggerClient = function(parameters) {
 			}
 			if (parameters[operation.parameters[i].name]) {
 				var value = parameters[operation.parameters[i].name];
+				if (value instanceof Array) {
+					var collectionFormat = operation.parameters[i].collectionFormat ? operation.parameters[i].collectionFormat : "csv";
+					var result = "";
+					for (var i = 0; i < value.length; i++) {
+						if (result.length > 0) {
+							if (collectionFormat == "csv") {
+								result += ",";
+							}
+							else if (collectionFormat == "ssv") {
+								result += " ";
+							}
+							else if (collectionFormat == "tsv") {
+								result += "\t";
+							}
+							else if (collectionFormat == "pipes") {
+								result += "|";
+							}
+							else {
+								throw "Unsupported collection format: " + collectionFormat;
+							}
+						}
+					}
+					value = result;
+				}
 				if (operation.parameters[i].in == "path") {
 					path = path.replace(new RegExp("\{[\\s]*" + operation.parameters[i].name + "[\\s]*\}"), value);
 				}
