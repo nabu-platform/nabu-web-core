@@ -1,0 +1,37 @@
+.n-accordion {
+	width: 100%;
+}
+
+.n-accordion .n-accordion-button {
+	width: 100%;
+	outline: none;
+	border: none;
+	text-align: left;
+	color: #444444;
+	background-color: #EEEEEE;
+	cursor: pointer;
+	padding: 18px;
+	transition: 0.4s;
+}
+
+.n-accordion .active .n-accordion-button, .n-accordion .n-accordion-button:hover {
+	background-color: #dddddd;
+}
+
+.n-accordion .n-accordion-button:after {
+	content: '▶';
+	font-size: 13px;
+	color: #777777;
+	float: right;
+}
+
+.n-accordion .active .n-accordion-button:after {
+	content: '▼';
+}
+
+.n-accordion .n-accordion-content {
+	display: none;
+}
+.n-accordion .active .n-accordion-content {
+	display: block;
+}
