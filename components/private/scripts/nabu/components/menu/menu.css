@@ -1,0 +1,65 @@
+.n-menu .inactive > .n-menu > ul {
+	display: none;
+}
+
+.n-menu .active > .n-menu > ul {
+	display: block;
+}
+
+.n-menu ul {
+	padding: 5px;
+	margin: 0px;
+}
+
+.n-menu {
+	width: 100%;
+}
+
+.n-menu li {
+	list-style: none;
+	display: block;
+	position: relative;
+	float: left;
+}
+
+.n-menu a {
+	display: block;
+	padding: 10px 15px;
+	text-decoration: none;
+	clear: both;
+}
+
+.n-menu ul ul {
+	position: absolute;
+	z-index: 100;
+	top: 100%;
+	left: 0;
+	display: none;
+	background-color: #ffffff;
+}
+
+.n-menu .inactive > .dropdown:after {
+	content: '▶';
+	font-size: 12px;
+	float: right;
+	margin-left: 15px;
+	margin-top: 1px;
+}
+
+.n-menu .active > .dropdown:after {
+	content: '▼';
+	font-size: 12px;
+	float: right;
+	margin-left: 15px;
+	margin-top: 1px;
+}
+
+.n-menu:after {
+	clear:both;
+}
+
+.n-menu-default * {
+	background-color: #333333;
+	color: #FFFFFF;
+	font-size: 12pt;
+}
