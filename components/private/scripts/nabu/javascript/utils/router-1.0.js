@@ -36,6 +36,7 @@ nabu.services.Router = function(parameters) {
 	this.leave = parameters.leave ? parameters.leave : null;
 	this.unknown = parameters.unknown ? parameters.unknown : null;
 
+	this.previousUrl = window.location.pathname;
 	this.changingHash = false;
 
 	// listen to hash changes
@@ -47,6 +48,13 @@ nabu.services.Router = function(parameters) {
 			else {
 				self.changingHash = false;
 			}
+		}
+	}, false);
+	
+	window.addEventListener("popstate", function(event) {
+		if (!self.useHash && self.previousUrl != window.location.pathname) {
+			self.routeInitial();
+			self.previousUrl = window.location.pathname;
 		}
 	}, false);
 
@@ -96,6 +104,7 @@ nabu.services.Router = function(parameters) {
 			}
 			else if (window.history) {
 				window.history.pushState({}, chosenRoute.alias, url);
+				self.previousUrl = window.location.pathname;
 			}
 		}
 	};

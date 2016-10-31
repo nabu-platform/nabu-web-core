@@ -166,7 +166,7 @@ nabu.utils.ajax = function(parameters) {
 			break;
 			// response loaded
 			case 4:
-				if (request.status == 200 && parameters.success) {
+				if (request.status >= 200 && request.status < 300 && parameters.success) {
 					parameters.success(request);
 				}
 				else if (request.status == 200 && nabu.handlers.ajax.success) {

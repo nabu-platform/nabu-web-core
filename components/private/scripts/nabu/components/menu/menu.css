@@ -17,9 +17,8 @@
 
 .n-menu li {
 	list-style: none;
-	display: block;
+	display: inline-block;
 	position: relative;
-	float: left;
 }
 
 .n-menu a {
@@ -35,7 +34,10 @@
 	top: 100%;
 	left: 0;
 	display: none;
-	background-color: #ffffff;
+}
+
+.n-menu li li {
+	display: block;
 }
 
 .n-menu .inactive > .dropdown:after {

@@ -14,6 +14,10 @@
 	transition: 0.4s;
 }
 
+.n-accordion .n-accordion-button::-moz-focus-inner {
+	border: none;
+}
+
 .n-accordion .active .n-accordion-button, .n-accordion .n-accordion-button:hover {
 	background-color: #dddddd;
 }
