@@ -42,18 +42,18 @@
 
 .n-menu .inactive > .dropdown:after {
 	content: '▶';
-	font-size: 12px;
+	font-size: 9px;
 	float: right;
 	margin-left: 15px;
-	margin-top: 1px;
+	margin-top: 4px;
 }
 
 .n-menu .active > .dropdown:after {
 	content: '▼';
-	font-size: 12px;
+	font-size: 9px;
 	float: right;
 	margin-left: 15px;
-	margin-top: 1px;
+	margin-top: 4px;
 }
 
 .n-menu:after {
@@ -64,4 +64,15 @@
 	background-color: #333333;
 	color: #FFFFFF;
 	font-size: 12pt;
+}
+
+.n-menu a img {
+	height: 60%;
+	display: inline-block;
+	vertical-align: top;
+	margin-top: -5px;
+}
+
+.n-menu .image-link {
+	padding: 0px 15px;
 }
