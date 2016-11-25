@@ -5,7 +5,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>nabu.web</groupId>
 	<artifactId>core</artifactId>
-	<version>1.1-SNAPSHOT</version>
+	<version>${nabu.web-core-version}</version>
 	<name>core</name>
 	
 	<parent>
@@ -17,8 +17,7 @@
 	<dependencies>
 		<dependency>
 			<groupId>nabu.web</groupId>
-			<artifactId>application</artifactId>
-			<version>1.0</version>
+			<artifactId>component</artifactId>
 		</dependency>
 	</dependencies>
 </project>
