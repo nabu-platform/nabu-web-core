@@ -263,6 +263,14 @@ nabu.utils.promise = function() {
 		}
 		return this;
 	};
+	this.then = function(success, error) {
+		if (success) {
+			self.success(success);
+		}
+		if (error) {
+			self.error(error);
+		}
+	};
 };
 
 nabu.utils.promises = function(promises) {
