@@ -202,15 +202,31 @@ nabu.utils.ajax = function(parameters) {
 	// need to add these headers for post
 	if (parameters.method.toUpperCase() == "POST" || parameters.method.toUpperCase() == "PUT" || parameters.method.toUpperCase() == "DELETE") {
 		// if we are sending an object as data, jsonify it
-		if (parameters.data && typeof(parameters.data) == "object") {
+		if (parameters.data && typeof(parameters.data) == "object" && !(parameters.data instanceof File)) {
 			parameters.data = JSON.stringify(parameters.data);
 			parameters.contentType = "application/json";
+		}
+		else if (parameters.data instanceof File) {
+			if (parameters.data.name) {
+				request.setRequestHeader("Content-Disposition", "attachment; filename=" + parameters.data.name);
+				if (!parameters.contentType) {
+					if (parameters.data.name.match(/.*\.png/i)) {
+						parameters.contentType = "image/png";
+					}
+					else if (parameters.data.name.match(/.*\.jpg/i) || parameters.data.name.match(/.*\.jpeg/i)) {
+						parameters.contentType = "image/jpeg";
+					}
+				}
+			}
+			if (!parameters.contentType) {
+				parameters.contentType = "application/octet-stream";
+			}
 		}
 		if (!parameters.contentType) {
 			parameters.contentType = "application/x-www-form-urlencoded";
 		}
 		request.setRequestHeader("Content-Type", parameters.contentType);
-		if (parameters.binary || (parameters.contentType.startsWith("image/"))) {
+		if (parameters.binary || (parameters.contentType.startsWith("image/") && !(parameters.data instanceof File))) {
 			parameters.data = nabu.utils.binary.blob(parameters.data, parameters.contentType);
 		}
 	}
@@ -296,13 +312,13 @@ nabu.utils.promises = function(promises) {
 			}
 		}
 		if (succeeded == self.promises.length) {
-			this.state = "success";
+			self.state = "success";
 			for (var i = 0; i < self.successHandlers.length; i++) {
 				self.successHandlers[i](responses);
 			}
 		}
 		else if (succeeded + failed == self.promises.length) {
-			this.state = "error";
+			self.state = "error";
 			for (var i = 0; i < self.errorHandlers.length; i++) {
 				self.errorHandlers[i](responses);
 			}
@@ -331,7 +347,14 @@ nabu.utils.promises = function(promises) {
 		}
 		return this;
 	};
-
+	this.then = function(success, error) {
+		if (success) {
+			self.success(success);
+		}
+		if (error) {
+			self.error(error);
+		}
+	};
 	this.resolver();
 }
 
