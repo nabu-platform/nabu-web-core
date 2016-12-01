@@ -1,0 +1,16 @@
+@meta
+method ?= null
+
+switch(method)
+	case("post")
+		@post
+		username ?= null
+		@post
+		password ?= null
+		if (!user.authenticate(username, password))
+			response.content(resource("error.html"), "text/html")
+			abort()
+		else
+			redirect(server.root())
+	default
+		echo(resource("login.html"))

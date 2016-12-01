@@ -269,7 +269,7 @@ nabu.utils.promise = function() {
 		if (self.state == "success") {
 			handler(self.response);
 		}
-		return this;
+		return self;
 	};
 	this.error = function(handler) {
 		self.errorHandlers.push(handler);
@@ -277,18 +277,18 @@ nabu.utils.promise = function() {
 		if (self.state == "error") {
 			handler(self.response);
 		}
-		return this;
+		return self;
 	};
-	this.then = function(success, error) {
-		if (success) {
-			self.success(success);
+	this.then = function(successHandler, errorHandler) {
+		if (successHandler) {
+			self.success(successHandler);
 		}
-		if (error) {
-			self.error(error);
+		if (errorHandler) {
+			self.error(errorHandler);
 		}
+		return self;
 	};
 };
-
 nabu.utils.promises = function(promises) {
 	var self = this;
 	this.promises = promises ? promises : [];
@@ -296,7 +296,7 @@ nabu.utils.promises = function(promises) {
 	this.successHandlers = [];
 	this.errorHandlers = [];
 	this.state = null;
-
+	
 	this.resolver = function() {
 		var failed = 0;
 		var succeeded = 0;
@@ -337,7 +337,7 @@ nabu.utils.promises = function(promises) {
 		if (self.state == "success") {
 			handler(self.response);
 		}
-		return this;
+		return self;
 	};
 	this.error = function(handler) {
 		self.errorHandlers.push(handler);
@@ -345,15 +345,16 @@ nabu.utils.promises = function(promises) {
 		if (self.state == "error") {
 			handler(self.response);
 		}
-		return this;
+		return self;
 	};
-	this.then = function(success, error) {
-		if (success) {
-			self.success(success);
+	this.then = function(successHandler, errorHandler) {
+		if (successHandler) {
+			self.success(successHandler);
 		}
-		if (error) {
-			self.error(error);
+		if (errorHandler) {
+			self.error(errorHandler);
 		}
+		return self;
 	};
 	this.resolver();
 }
