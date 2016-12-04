@@ -169,10 +169,10 @@ nabu.utils.ajax = function(parameters) {
 				if (request.status >= 200 && request.status < 300 && parameters.success) {
 					parameters.success(request);
 				}
-				else if (request.status == 200 && nabu.handlers.ajax.success) {
+				else if (request.status >= 200 && request.status < 300 && nabu.handlers.ajax.success) {
 					nabu.handlers.ajax.success(request);
 				}
-				else if (request.status == 200 && parameters.completed) {
+				else if (request.status >= 200 && request.status < 300 && parameters.completed) {
 					parameters.completed(request);
 				}
 				else if (parameters.error) {

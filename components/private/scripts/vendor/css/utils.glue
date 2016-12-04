@@ -1,0 +1,4 @@
+string [] scripts ?= resources()
+
+for (script : scripts)
+	echo(resource(script), "\n")
