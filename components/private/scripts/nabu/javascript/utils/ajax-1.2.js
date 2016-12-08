@@ -166,31 +166,28 @@ nabu.utils.ajax = function(parameters) {
 			break;
 			// response loaded
 			case 4:
-				if (request.status >= 200 && request.status < 300 && parameters.success) {
-					parameters.success(request);
-				}
-				else if (request.status >= 200 && request.status < 300 && nabu.handlers.ajax.success) {
-					nabu.handlers.ajax.success(request);
-				}
-				else if (request.status >= 200 && request.status < 300 && parameters.completed) {
-					parameters.completed(request);
-				}
-				else if (parameters.error) {
-					parameters.error(request);
-				}
-				else if (parameters.completed) {
-					parameters.completed(request);
-				}
-				else if (nabu.handlers.ajax.error) {
-					nabu.handlers.ajax.error(request);
-				}
-				else {
-					console.log("Ajax error", request);
-				}
 				if (request.status >= 200 && request.status < 300) {
+					if (parameters.success) {
+						parameters.success(request);
+					}
+					else if (parameters.completed) {
+						parameters.completed(request);
+					}
+					else if (nabu.handlers.ajax.success) {
+						nabu.handlers.ajax.success(request);
+					}
 					promise.succeed(request);
 				}
 				else {
+					if (parameters.error) {
+						parameters.error(request);
+					}
+					else if (parameters.completed) {
+						parameters.completed(request);
+					}
+					else if (nabu.handlers.ajax.error) {
+						nabu.handlers.ajax.error(request);
+					}
 					promise.fail(request);
 				}
 			break;

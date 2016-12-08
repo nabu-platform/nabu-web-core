@@ -13,6 +13,18 @@ router.register({
 	url: "/path/to/{myVar}/{myOtherVar}
 });
 
+For route authorization you can register a function that has the following spec:
+
+function(anchor, route, parameters, previousRoute, previousParameters)
+
+It should return either a boolean indicating whether or not the route is allowed, nothing or null if it's allowed or a structured object of an alternative route:
+{ 
+	alias: mandatory,
+	properties: if required by the alias,
+	anchor: if none is given, the original anchor is used,
+	mask: if none is given, the original mask boolean is used
+}
+
 When creating a router instance you can pass in a global enter/leave method.
 These global methods are called with exactly the same parameters as the route-specific enter/leaves but adds one more parameter at the end: the return of the specific enter/leave (if any)
 
@@ -35,6 +47,7 @@ nabu.services.Router = function(parameters) {
 	this.enter = parameters.enter ? parameters.enter : null;
 	this.leave = parameters.leave ? parameters.leave : null;
 	this.unknown = parameters.unknown ? parameters.unknown : null;
+	this.authorizer = parameters.authorizer ? parameters.authorizer : null;
 
 	this.previousUrl = window.location.pathname;
 	this.changingHash = false;
@@ -76,6 +89,20 @@ nabu.services.Router = function(parameters) {
 		if (chosenRoute == null) {
 			throw "Unknown route: " + alias;
 		}
+		if (self.authorizer) {
+			var result = self.authorizer(anchor, chosenRoute, parameters, self.current ? self.current.route : null, self.current ? self.current.parameters : null);
+			if (typeof(result) == "boolean" && !result) {
+				return false;
+			}
+			else if (typeof(result) == "object" && result) {
+				return self.route(
+					result.alias,
+					result.parameters,
+					result.anchor ? result.anchor : anchor,
+					typeof(result.mask) == "undefined" ? mask : result.mask
+				);
+			}
+		}
 		var leaveReturn = null;
 		if (self.current && self.current.route.leave) {
 			leaveReturn = self.current.route.leave(anchor, self.current.parameters, chosenRoute, parameters);
@@ -93,19 +120,24 @@ nabu.services.Router = function(parameters) {
 		};
 		// update the current URL if the state has a URL attached to it
 		if (chosenRoute.url && !mask) {
-			var url = chosenRoute.url;
-			for (var key in parameters) {
-				url = url.replace(new RegExp("{[\s]*" + key + "[\s]*:[^}]+}"), parameters[key]).replace(new RegExp("{[\s]*" + key + "[\s]*}"), parameters[key]);
-			}
-			url = url.replace(/[\/]{2,}/, "/");
-			if (self.useHash) {
-				self.changingHash = true;
-				window.location.hash = "#" + url;
-			}
-			else if (window.history) {
-				window.history.pushState({}, chosenRoute.alias, url);
-				self.previousUrl = window.location.pathname;
-			}
+			self.updateUrl(chosenRoute.url, parameters);
+		}
+		return true;
+	};
+	
+	this.updateUrl = function(url, parameters) {
+		var self = this;
+		for (var key in parameters) {
+			url = url.replace(new RegExp("{[\s]*" + key + "[\s]*:[^}]+}"), parameters[key]).replace(new RegExp("{[\s]*" + key + "[\s]*}"), parameters[key]);
+		}
+		url = url.replace(/[\/]{2,}/, "/");
+		if (self.useHash) {
+			self.changingHash = true;
+			window.location.hash = "#" + url;
+		}
+		else if (window.history) {
+			window.history.pushState({}, chosenRoute.alias, url);
+			self.previousUrl = window.location.pathname;
 		}
 	};
 
@@ -155,17 +187,41 @@ nabu.services.Router = function(parameters) {
 		else {
 			initial = self.findRoute(window.location.pathname ? window.location.pathname : "/", true);
 		}
-		if (initial != null) {
-			initial.route.enter("body", initial.parameters, null, null);
-		}
 		// look for an initial route that has no url, it is the default initial
-		else {
+		if (initial == null) {
 			for (var i = 0; i < self.routes.length; i++) {
 				if (self.routes[i].initial && !self.routes[i].url) {
-					self.routes[i].enter("body", self.routes[i].parameters, null, null);
+					initial = {
+						route: self.routes[i],
+						parameters: self.routes[i].parameters
+					};
 					break;
 				}	
 			}
+		}
+		
+		if (initial != null) {
+			if (self.authorizer) {
+				var result = self.authorizer("body", initial.route, initial.parameters, null, null);
+				if (typeof(result) == "object" && result) {
+					initial = self.findByAlias(
+						result.alias,
+						result.parameters,
+						"body",
+						true
+					);
+					if (initial == null) {
+						throw "Coult not find initial route: " + result.alias;
+					}
+					else {
+						initial = {
+							route: initial,
+							parameters: result.parameters
+						}
+					}
+				}
+			}
+			initial.route.enter("body", initial.parameters, null, null);
 		}
 		// check for actual data route
 		if (self.useHash) {
@@ -175,9 +231,45 @@ nabu.services.Router = function(parameters) {
 			self.current = self.findRoute(window.location.pathname ? window.location.pathname : "/");
 		}
 		if (self.current != null) {
+			if (self.authorizer) {
+				var result = self.authorizer(anchor, self.current.route, self.current.parameters, null, null);
+				if (typeof(result) == "object" && result) {
+					var alternativeRoute = self.findByAlias(
+						result.alias,
+						result.parameters,
+						result.anchor ? result.anchor : anchor,
+						false
+					);
+					if (alternativeRoute == null) {
+						throw "Could not find alternative route: " + result.alias;
+					}
+					self.current = {
+						route: alternativeRoute,
+						parameters: result.parameters
+					}
+					if (alternativeRoute.url && (typeof(alternativeRoute.mask) == "undefined" || !alternativeRoute.mask)) {
+						self.updateUrl(alternativeRoute.url, result.parameters);
+					}
+					self.updateUrl(alternativeRoute.url, parameters);
+				}
+			}
 			self.current.route.enter(anchor, self.current.parameters, null, null);
 		}
 		return this;
+	};
+	
+	this.findByAlias = function(alias, parameters, anchor, initial) {
+		var chosenRoute = null;
+		for (var i = 0; i < self.routes.length; i++) {
+			if (self.routes[i].alias == alias && (initial || !self.routes[i].initial)) {
+				chosenRoute = self.routes[i];
+				break;
+			}
+		}
+		if (chosenRoute == null && self.unknown) {
+			chosenRoute = self.unknown(alias, parameters, anchor);
+		}
+		return chosenRoute;
 	};
 
 	this.register = function(route) {

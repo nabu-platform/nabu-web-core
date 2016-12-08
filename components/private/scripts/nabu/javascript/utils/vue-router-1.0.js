@@ -88,6 +88,7 @@ nabu.services.VueRouter = function(parameters) {
 					};
 					// it's a vue component
 					if (component.$mount) {
+						route.$lastInstance = component;
 						var mounted = null;
 						if (!component.$el) {
 							mounted = component.$mount();
@@ -129,6 +130,16 @@ nabu.services.VueRouter = function(parameters) {
 		}
 		var originalLeave = route.leave;
 		route.leave = function(anchorName, currentParameters, newRoute, newParameters) {
+			if (route.$lastInstance && route.$lastInstance.$options.beforeDestroy) {
+				if (route.$lastInstance.$options.beforeDestroy instanceof Array) {
+					// TODO: loop over them and use a combined promise
+					route.$lastInstance.$options.beforeDestroy[0].call(route.$lastInstance);
+				}
+				else {
+					route.$lastInstance.$options.beforeDestroy.call(route.$lastInstance);
+				}
+				route.$lastInstance = null;
+			}
 			var anchor = nabu.utils.anchors.find(anchorName);
 			if (anchor) {
 				for (var i = 0; i < anchor.$el.attributes.length; i++) {
