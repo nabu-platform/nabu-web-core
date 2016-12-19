@@ -10,10 +10,11 @@ nabu.components.List = Vue.component("n-menu", {
 		}
 	},
 	created: function() {
+		/*
 		var self = this;
 		document.addEventListener("click", function(e) {
 			self.active = null;
-		}, true);
+		}, true);*/
 	},
 	methods: {
 		toggle: function(item) {

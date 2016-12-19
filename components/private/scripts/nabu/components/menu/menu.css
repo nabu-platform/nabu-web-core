@@ -7,7 +7,7 @@
 }
 
 .n-menu ul {
-	padding: 5px;
+	padding: 0px;
 	margin: 0px;
 }
 
@@ -23,7 +23,7 @@
 
 .n-menu a {
 	display: block;
-	padding: 10px 15px;
+	padding: 15px 15px;
 	text-decoration: none;
 	clear: both;
 }
@@ -42,7 +42,7 @@
 
 .n-menu .inactive > .dropdown:after {
 	content: '▶';
-	font-size: 9px;
+	font-size: 8px;
 	float: right;
 	margin-left: 15px;
 	margin-top: 4px;
@@ -50,7 +50,7 @@
 
 .n-menu .active > .dropdown:after {
 	content: '▼';
-	font-size: 9px;
+	font-size: 8px;
 	float: right;
 	margin-left: 15px;
 	margin-top: 4px;
@@ -61,9 +61,14 @@
 }
 
 .n-menu-default * {
-	background-color: #333333;
+	background-color: #222222;
 	color: #FFFFFF;
-	font-size: 12pt;
+	font-size: 11pt;
+}
+
+.n-menu-default .n-menu li.active * {
+	background-color: #333333;
+	color: #fafafa;
 }
 
 .n-menu a img {
@@ -73,6 +78,48 @@
 	margin-top: -5px;
 }
 
+.n-menu li {
+	min-width: 200px;
+	text-align: center;
+}
 .n-menu .image-link {
 	padding: 0px 15px;
+}
+
+.n-menu a {
+	border: solid 1px #666;
+	border-style: none solid none none;
+}
+
+.n-menu .n-menu .n-menu ul {
+	margin-left: 200px;
+	top: 0%;
+}
+
+@media only screen and (max-width: 1280px) {
+	.n-menu li {
+		min-width: 100px;	
+	}
+	.n-menu .n-menu .n-menu ul {
+		margin-left: 100px;
+	}
+	.n-menu * {
+		font-size: 9pt;
+	}
+}
+
+@media only screen and (max-width: 1000px) {
+	.n-menu li {
+		min-width: 65px;	
+	}
+	.n-menu .n-menu .n-menu ul {
+		margin-left: 65px;
+	}
+	.n-menu a {
+		border: none;
+		padding: 10px 10px !important;
+	}
+	.n-menu a:after {
+		margin-top: 1px !important;
+	}
 }

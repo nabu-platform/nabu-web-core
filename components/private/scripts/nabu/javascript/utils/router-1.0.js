@@ -120,12 +120,12 @@ nabu.services.Router = function(parameters) {
 		};
 		// update the current URL if the state has a URL attached to it
 		if (chosenRoute.url && !mask) {
-			self.updateUrl(chosenRoute.url, parameters);
+			self.updateUrl(chosenRoute.alias, chosenRoute.url, parameters);
 		}
 		return true;
 	};
 	
-	this.updateUrl = function(url, parameters) {
+	this.updateUrl = function(alias, url, parameters) {
 		var self = this;
 		for (var key in parameters) {
 			url = url.replace(new RegExp("{[\s]*" + key + "[\s]*:[^}]+}"), parameters[key]).replace(new RegExp("{[\s]*" + key + "[\s]*}"), parameters[key]);
@@ -136,7 +136,7 @@ nabu.services.Router = function(parameters) {
 			window.location.hash = "#" + url;
 		}
 		else if (window.history) {
-			window.history.pushState({}, chosenRoute.alias, url);
+			window.history.pushState({}, alias, url);
 			self.previousUrl = window.location.pathname;
 		}
 	};
@@ -164,6 +164,17 @@ nabu.services.Router = function(parameters) {
 						parameters[variables[j].substring(1, variables[j].length - 1).replace(/:.*$/, "")] = matches[j];
 					}
 					chosenRoute = self.routes[i];
+					if (chosenRoute.query) {
+						var parts = window.location.search.substring(1).split("&");
+						for (var i = 0; i < parts.length; i++) {
+							var values = parts[i].split("=");
+							if (chosenRoute.query.indexOf(values[0]) >= 0) {
+								var key = values[0];
+								values.splice(0, 1);
+								parameters[key] = values.join("=");
+							}
+						}
+					}
 					break;
 				}
 			}
@@ -248,9 +259,9 @@ nabu.services.Router = function(parameters) {
 						parameters: result.parameters
 					}
 					if (alternativeRoute.url && (typeof(alternativeRoute.mask) == "undefined" || !alternativeRoute.mask)) {
-						self.updateUrl(alternativeRoute.url, result.parameters);
+						self.updateUrl(alternativeRoute.alias, alternativeRoute.url, result.parameters);
 					}
-					self.updateUrl(alternativeRoute.url, parameters);
+					self.updateUrl(alternativeRoute.alias, alternativeRoute.url, parameters);
 				}
 			}
 			self.current.route.enter(anchor, self.current.parameters, null, null);

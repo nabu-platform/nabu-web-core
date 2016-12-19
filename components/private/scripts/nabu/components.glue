@@ -1,5 +1,6 @@
 type ?= "js"
 
+replacer = nabu.utils.lambdas()/templater
 for (resource : resources())
 	if (resource ~ ".*\." + type)
-		echo(resource(resource), "\n")
+		echo(replacer(resource(resource)), "\n")

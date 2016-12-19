@@ -1,3 +1,5 @@
+title ?= null
+
 @meta
 method ?= null
 
@@ -8,9 +10,9 @@ switch(method)
 		@post
 		password ?= null
 		if (!user.authenticate(username, password))
-			response.content(resource("error.html"), "text/html")
+			response.content(template(resource("error.html")), "text/html")
 			abort()
 		else
 			redirect(server.root())
 	default
-		echo(resource("login.html"))
+		echo(template(resource("login.html")))
