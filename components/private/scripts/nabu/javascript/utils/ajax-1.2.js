@@ -126,9 +126,13 @@ nabu.utils.ajax = function(parameters) {
 		request.open(parameters.method.toUpperCase(), parameters.url, parameters.async);
 	}
 
+	var acceptHeader = false;
 	if (parameters.headers) {
 		for (var key in parameters.headers) {
 			request.setRequestHeader(key, parameters.headers[key]);
+			if (key.toUpperCase() == "ACCEPT") {
+				acceptHeader = true;
+			}
 		}
 	}
 
@@ -194,7 +198,9 @@ nabu.utils.ajax = function(parameters) {
 		}
 	}
 
-	request.setRequestHeader("Accept", "application/json, text/html");
+	if (!acceptHeader) {
+		request.setRequestHeader("Accept", "application/json, text/html");
+	}
 
 	// need to add these headers for post
 	if (parameters.method.toUpperCase() == "POST" || parameters.method.toUpperCase() == "PUT" || parameters.method.toUpperCase() == "DELETE") {
