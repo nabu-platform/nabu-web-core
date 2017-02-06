@@ -69,7 +69,7 @@ Vue.mixin({
 						query += "entryId=" + ids[i];
 					}
 					// reset the state of the resolving
-					target.masterdata.idsToResolve.splice(0, target.masterdata.idsToResolve);
+					target.masterdata.idsToResolve.splice(0, target.masterdata.idsToResolve.length);
 					target.masterdata.timer = null;
 					nabu.utils.ajax({
 						method: "GET",

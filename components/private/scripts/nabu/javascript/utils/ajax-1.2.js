@@ -140,11 +140,15 @@ nabu.utils.ajax = function(parameters) {
 		request.target = parameters.target;
 	}
 
+	var promise = new nabu.utils.promise(parameters);
+	
 	if (parameters.progress) {
 		request.onprogress = progress;
 	}
-
-	var promise = new nabu.utils.promise();
+	else {
+		request.onprogress = promise.onprogress;
+	}
+	
 	request.onreadystatechange = function() {
 		switch (request.readyState) {
 			case 0:
@@ -246,12 +250,14 @@ nabu.utils.when = function(promises) {
 	return new nabu.utils.promises(promises);
 };
 
-nabu.utils.promise = function() {
+nabu.utils.promise = function(parameters) {
 	var self = this;
 	this.state = null;
 	this.successHandlers = [];
 	this.errorHandlers = [];
+	this.progressHandlers = [];
 	this.response = null;
+	this.parameters = parameters;
 	this.succeed = function(response) {
 		self.response = response;
 		self.state = "success";
@@ -282,12 +288,25 @@ nabu.utils.promise = function() {
 		}
 		return self;
 	};
-	this.then = function(successHandler, errorHandler) {
+	this.onprogress = function(event) {
+		if (self.progressHandlers) {
+			for (var i = 0; i < self.progressHandlers.length; i++) {
+				self.progressHandlers[i](event, self.parameters);
+			}
+		}
+	};
+	this.progress = function(progressHandler) {
+		self.progressHandlers.push(progressHandler);
+	};
+	this.then = function(successHandler, errorHandler, progressHandler) {
 		if (successHandler) {
 			self.success(successHandler);
 		}
 		if (errorHandler) {
 			self.error(errorHandler);
+		}
+		if (progressHandler) {
+			self.progress(progressHandler);
 		}
 		return self;
 	};
@@ -298,6 +317,7 @@ nabu.utils.promises = function(promises) {
 	this.resolution = null;
 	this.successHandlers = [];
 	this.errorHandlers = [];
+	this.progressHandlers = [];
 	this.state = null;
 	
 	this.resolver = function() {
@@ -327,13 +347,24 @@ nabu.utils.promises = function(promises) {
 			}
 		}
 	};
+	
+	this.onprogress = function(event, parameters) {
+		if (self.progressHandlers) {
+			for (var i = 0; i < self.progressHandlers.length; i++) {
+				self.progressHandlers[i](event, parameters);
+			}
+		}
+	};
 
 	for (var i = 0; i < this.promises.length; i++) {
 		this.promises[i]
 			.success(this.resolver)
-			.error(this.resolver);
+			.error(this.resolver)
+			.progress(this.onprogress);
 	}
-
+	this.progress = function(progressHandler) {
+		self.progressHandlers.push(progressHandler);
+	};
 	this.success = function(handler) {
 		self.successHandlers.push(handler);
 		// if already resolved, call immediately
@@ -350,12 +381,15 @@ nabu.utils.promises = function(promises) {
 		}
 		return self;
 	};
-	this.then = function(successHandler, errorHandler) {
+	this.then = function(successHandler, errorHandler, progressHandler) {
 		if (successHandler) {
 			self.success(successHandler);
 		}
 		if (errorHandler) {
 			self.error(errorHandler);
+		}
+		if (progressHandler) {
+			self.progress(progressHandler);
 		}
 		return self;
 	};

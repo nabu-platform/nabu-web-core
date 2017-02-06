@@ -85,6 +85,27 @@ nabu.utils.arrays = {
 };
 
 nabu.utils.objects = {
+	clone: function(original) {
+		var copy = {};
+		nabu.utils.objects.merge(copy, original);
+		return copy;
+	},
+	retain: function(original, values) {
+		for (var key in original) {
+			if (values.indexOf(key) < 0) {
+				delete original[key];
+			}
+		}
+		return original;
+	},
+	remove: function(original, values) {
+		for (var key in original) {
+			if (values.indexOf(key) >= 0) {
+				delete original[key];
+			}
+		}
+		return original;
+	},
 	merge: function(original) {
 		if (original instanceof Array) {
 			var args = [];
@@ -107,7 +128,10 @@ nabu.utils.objects = {
 						continue;
 					}
 					if (arguments[i][key] instanceof Array) {
-						throw "Can not merge arrays (yet)";
+						if (!original[key]) {
+							original[key] = [];
+						}
+						nabu.utils.arrays.merge(original[key], arguments[i][key]);
 					}
 					else if (typeof arguments[i][key] == "object") {
 						if (!original[key]) {
@@ -368,7 +392,7 @@ nabu.utils.stage = function(object, parameters) {
 		shim.$rollback = function() {
 			for (var key in object) {
 				// recursively shim
-				if (object[key] instanceof Array || typeof(object[key]) == "object") {
+				if (object[key] != null && (object[key] instanceof Array || typeof(object[key]) == "object")) {
 					shim[key] = nabu.utils.stage(object[key]);
 				}
 				else {
@@ -385,7 +409,7 @@ nabu.utils.stage = function(object, parameters) {
 				if (key.substring(0, 1) == "$") {
 					continue;
 				}
-				if (shim[key] instanceof Array || typeof(shim[key]) == "object") {
+				if (shim[key] != null && (shim[key] instanceof Array || typeof(shim[key]) == "object")) {
 					shim[key].$commit();
 				}
 				else {
