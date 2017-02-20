@@ -1,0 +1,8 @@
+<structure interface="be.nabu.libs.authentication.api.RoleHandler.hasRole" name="pipeline">
+    <structure name="input">
+        <structure definition="nabu.web.core.types.configuration.security" name="configuration"/>
+    </structure>
+    <structure name="output"/>
+    <structure definition="nabu.web.core.types.configuration.user" minOccurs="0" name="user"/>
+    <field name="roleIndex" type="java.lang.Integer"/>
+</structure>

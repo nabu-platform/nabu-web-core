@@ -1,0 +1,24 @@
+<sequence xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" disabled="false" id="f6ce8f3c-ec4e-4198-849e-933ff3416895">
+	<steps xsi:type="be.nabu.libs.services.vm.step.Map" disabled="false" comment="Select the user by name &amp; pass" id="888b36da-51b5-4409-89a9-0b89025603be">
+		<steps xsi:type="be.nabu.libs.services.vm.step.Link" disabled="false" id="f1ab9129-c2d1-40aa-b0a0-34747b6dc781" fixedValue="false" optional="false" mask="false">
+			<from>input/configuration/users[name == /input/credentials/name &amp;&amp; password == /input/credentials/password]</from>
+			<to>user</to>
+		</steps>
+	</steps>
+	<steps xsi:type="be.nabu.libs.services.vm.step.Switch" disabled="false" id="26511454-b9d1-435c-93ed-d9748092f014">
+		<steps xsi:type="be.nabu.libs.services.vm.step.Map" disabled="false" label="user != null" id="1b82edf9-c309-4f7a-b026-127859b1a9fc">
+			<steps xsi:type="be.nabu.libs.services.vm.step.Link" disabled="false" id="5e0104b3-24bc-429a-bc50-c08e7248f41a" fixedValue="false" optional="false" mask="false">
+				<from>user/name</from>
+				<to>output/response/name</to>
+			</steps>
+			<steps xsi:type="be.nabu.libs.services.vm.step.Link" disabled="false" id="ee35c133-20db-41e9-a6b7-6104048a3a96" fixedValue="false" optional="false" mask="false">
+				<from>input/realm</from>
+				<to>output/response/realm</to>
+			</steps>
+			<steps xsi:type="be.nabu.libs.services.vm.step.Link" disabled="false" id="a0ee50b9-035a-4b04-bbc9-de35f217a6c5" fixedValue="false" optional="false" mask="false">
+				<from>input/credentials</from>
+				<to>output/response/credentials[0]</to>
+			</steps>
+		</steps>
+	</steps>
+</sequence>

@@ -1,0 +1,3 @@
+<structure name="security">
+    <structure definition="nabu.web.core.types.configuration.user" maxOccurs="unbounded" minOccurs="0" name="users"/>
+</structure>

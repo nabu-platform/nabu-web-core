@@ -1,0 +1,5 @@
+<structure name="user">
+    <field name="name" type="java.lang.String"/>
+    <field name="password" type="java.lang.String"/>
+    <field maxOccurs="unbounded" minOccurs="0" name="roles" type="java.lang.String"/>
+</structure>

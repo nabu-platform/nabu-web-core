@@ -12,6 +12,8 @@ switch(method)
 		if (!user.authenticate(username, password))
 			response.content(template(resource("error.html")), "text/html")
 			abort()
+		else if (request.header("Original-Target") != null)
+			redirect(request.header("Original-Target")/value)
 		else
 			redirect(server.root())
 	default
