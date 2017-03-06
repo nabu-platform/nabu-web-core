@@ -1,0 +1,65 @@
+file ?= "nabu.json"
+json ?= when(file ? resources(),
+	json.objectify(resource(file), true),
+	json.objectify(read("repository:" + environment("webApplicationId") + ":/private/" + file), true))
+target ?= when(file ? resources(),
+	system.pwd(),
+	"repository:" + environment("webApplicationId") + ":/private/dependencies")
+boolean force ?= environment("development") == true && request.get("force") == true
+registry ?= "http://registry.npmjs.org"
+regex ?= ".*\.js"
+scope ?= "dependencies"
+
+encode = lambda(x, replace("/", "%2F", x))
+
+if (json/variables != null)
+	inject(json/variables)
+	
+for (dependency : keys(json[/scope]))
+	if (dependency ~ regex)
+		context = json[/scope][/dependency]
+		dependencyTarget = when(context/package == null, target + "/" + dependency, target + "/" + context/package + "/" + dependency)
+		# only update it if we force it or it doesn't exist yet
+		if (force || !exists(dependencyTarget))
+			# you are resolving from a remote location (github, cdn,...)
+			if (context/url != null)
+				# inject the context so you can use variables in the url
+				inject(context)
+				# template the url
+				url = template(context/url)
+				console("Downloading url " + dependency + ": " + url)
+				# get the content
+				content = read(url)
+				# write the content to the target
+				write(dependencyTarget, content)
+			# resolving from nodejs registry
+			else if (context/package != null)
+				# the package urls are encoded
+				# note this doesn't work atm cause the http client reencodes the "%", so it will send %252F and the registry specifically wants "%2F"...
+				# currently I'm just gonna stop implementing this, there are too many problems
+				# one of them is also we have a "main" file but no guarantee that there are non-main files that depend on import statements or the like
+				# just use github links, cdn links,... at least they are distributable...
+				url = encode(context/package)
+				content = read(registry + "/" + url)
+				if (content == null)
+					console("Can not find content for: " + context/package)
+				else
+					content = json.objectify(content)
+					version = context/version
+					if (version == null)
+						version = content["dist-tags"]/latest
+					console("Downloading npm package " + dependency + ": " + version)
+					information = content/versions[/version]
+					url = information/dist/tarball
+					if (url == null)
+						console("Can not find tarball for: " + context/package)
+					else
+						content = read(url)
+						name = uuid() + ".tgz"
+						# TODO: use java-tools to extract tar
+						write("/tmp/" + name, content)
+						mainFile = system.tar("-zOxvf", "/tmp/" + name, information/main)
+						write(dependencyTarget, mainFile)
+		else
+			console("Skipping " + dependency)
+		echo(read(dependencyTarget))

@@ -233,4 +233,4 @@ nabu.utils.anchors = {
 		}
 		return null;
 	}
-}
+};
