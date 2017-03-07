@@ -1,65 +1,111 @@
-file ?= "nabu.json"
+file ?= "bundle.json"
 json ?= when(file ? resources(),
 	json.objectify(resource(file), true),
 	json.objectify(read("repository:" + environment("webApplicationId") + ":/private/" + file), true))
 target ?= when(file ? resources(),
 	system.pwd(),
-	"repository:" + environment("webApplicationId") + ":/private/dependencies")
+	"repository:" + environment("webApplicationId") + ":/private/scripts/bundles")
 boolean force ?= environment("development") == true && request.get("force") == true
 registry ?= "http://registry.npmjs.org"
 regex ?= ".*\.js"
-scope ?= "dependencies"
+string [] scopes ?= null
 
-encode = lambda(x, replace("/", "%2F", x))
+resolveRequires = lambda
+	json ?= null
+	requires ?= null
 
-if (json/variables != null)
-	inject(json/variables)
-	
-for (dependency : keys(json[/scope]))
-	if (dependency ~ regex)
-		context = json[/scope][/dependency]
-		dependencyTarget = when(context/package == null, target + "/" + dependency, target + "/" + context/package + "/" + dependency)
-		# only update it if we force it or it doesn't exist yet
-		if (force || !exists(dependencyTarget))
-			# you are resolving from a remote location (github, cdn,...)
-			if (context/url != null)
-				# inject the context so you can use variables in the url
-				inject(context)
-				# template the url
-				url = template(context/url)
-				console("Downloading url " + dependency + ": " + url)
-				# get the content
-				content = read(url)
-				# write the content to the target
-				write(dependencyTarget, content)
-			# resolving from nodejs registry
-			else if (context/package != null)
-				# the package urls are encoded
-				# note this doesn't work atm cause the http client reencodes the "%", so it will send %252F and the registry specifically wants "%2F"...
-				# currently I'm just gonna stop implementing this, there are too many problems
-				# one of them is also we have a "main" file but no guarantee that there are non-main files that depend on import statements or the like
-				# just use github links, cdn links,... at least they are distributable...
-				url = encode(context/package)
-				content = read(registry + "/" + url)
-				if (content == null)
-					console("Can not find content for: " + context/package)
-				else
-					content = json.objectify(content)
-					version = context/version
-					if (version == null)
-						version = content["dist-tags"]/latest
-					console("Downloading npm package " + dependency + ": " + version)
-					information = content/versions[/version]
-					url = information/dist/tarball
-					if (url == null)
-						console("Can not find tarball for: " + context/package)
-					else
-						content = read(url)
-						name = uuid() + ".tgz"
-						# TODO: use java-tools to extract tar
-						write("/tmp/" + name, content)
-						mainFile = system.tar("-zOxvf", "/tmp/" + name, information/main)
-						write(dependencyTarget, mainFile)
+	@return
+	result = structure()
+	for (key : keys(requires))
+		context = requires[/key]
+		if (context/self != null)
+			scope = json/scopes[/context/self]
+			result = structure(result, lambda(key): scope[/key])
 		else
-			console("Skipping " + dependency)
-		echo(read(dependencyTarget))
+			result = structure(result, lambda(key): context)
+
+# included remote bundle.json files should _only_ have the scope dependencies, all other scopes are ignored
+resolveJson = lambda
+	target ?= null
+	json ?= null
+	string [] scopes ?= null
+	includes ?= series()
+	excludes ?= series()
+	
+	@return
+	resolved ?= series()
+	
+	if (json/variables != null)
+		inject(json/variables)
+	
+	for (scope : keys(json/scopes))
+		if (scopes == null || size(scopes) == 0 || scope ? scopes)
+			for (dependency : keys(json/scopes[/scope]))
+				scopeContent = json/scopes[/scope]
+				context = scopeContent[/dependency]
+				type = when(context/type != null, context/type, json/scopes[/scope]/type)
+				# default type is "file" which we only resolve if necessary
+				# modules always have to be recursively resolved
+				if ((dependency !? excludes && (size(includes) == 0 || dependency ? includes) && dependency ~ regex) || type == "bundle")
+					dependencyTarget = when(context/folder == null, target + "/" + dependency, target + "/" + context/folder + "/" + dependency)
+					
+					if (type == "bundle")
+						dependencyTarget = dependencyTarget + "/bundle.json"
+						
+					# whether or not we should include it in the output
+					# the only reason not to is if it was already resolved before
+					include = true
+					# calculate the url to see if we have already included it
+					# you are resolving from a remote location (github, cdn,...)
+					if (context/url != null)
+						# make sure we can detect when content was not loaded and not accidently use previous content
+						content = null
+						# inject the context so you can use variables in the url
+						inject(context)
+						# template the url
+						url = template(context/url)
+						if (url ? resolved/url)
+							console("Skipping previously resolved dependency: " + dependency + " [" + url + "]")
+							include = false
+						else
+							# only update it if we force it or it doesn't exist yet
+							if (force || !exists(dependencyTarget))
+								console("Downloading dependency: " + dependency + " [" + url + "]")
+								# get the content
+								content = read(url)
+								# write the content to the target
+								write(dependencyTarget, content)
+							else
+								console("Skipping existing dependency: " + dependency + " [" + url + "]")
+								
+							# always add it to resolved, whether or not it was (re)downloaded
+							resolved = merge(resolved, structure(
+									url: url,
+									target: dependencyTarget,
+									dependency: dependency
+								))
+						# get the correct resolution
+						correct = first(resolved[url = /url])
+						if (type == "bundle")
+							# if you have items that are from an already imported bundle but not imported themselves (e.g. different scope or excluded/not included)
+							# the question is, do you want to resolve them in the location of the original bundle
+							# or in the location of the current bundle
+							# currently we opt for the latter as it makes it more clear who imports what
+							resolved = merge(resolved, resolveJson(replace("/bundle.json$", "", dependencyTarget), json.objectify(read(correct/target), true), context/scopes, context/includes, context/excludes, resolved))
+						else if (include)
+							if (dependency ~ ".*\.gcss")
+								gcss = function(replace("/", ".", target) + "." + replace(".gcss", "", correct/dependency))
+								gcss = bind(gcss, scope())
+								gcss()
+							else
+								echo(read(correct/target), "\n")
+								
+					# a context can have requires which _must_ be resolved
+					if (context/requires != null)
+						# we create a bundle on the fly with one scope: requires
+						# we then add the requirements in it so they can be resolved
+						# include the original variables so you can refer to them
+						resolved = merge(resolved, 
+							resolveJson(target, structure(variables: json/variables, scopes: structure(requires: resolveRequires(json, context/requires))), resolved: resolved))						
+			
+resolveJson(target, json, scopes)
