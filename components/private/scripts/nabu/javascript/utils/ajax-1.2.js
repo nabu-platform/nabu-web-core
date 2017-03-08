@@ -265,12 +265,18 @@ nabu.utils.promise = function(parameters) {
 			self.successHandlers[i](response);
 		}
 	};
+	this.resolve = function(response) {
+		this.succeed(response);
+	};
 	this.fail = function(response) {
 		self.response = response;
 		self.state = "error";
 		for (var i = 0; i < self.errorHandlers.length; i++) {
 			self.errorHandlers[i](response);
 		}
+	};
+	this.reject = function(response) {
+		this.fail(response);
 	};
 	this.success = function(handler) {
 		self.successHandlers.push(handler);
@@ -414,3 +420,25 @@ nabu.utils.binary = {
 		return new Blob(bytes, { type: contentType });
 	}
 };
+
+if (!nabu.services) { nabu.services = {}; }
+
+nabu.services.q = {
+	defer: function() {
+		return new nabu.utils.promise();
+	},
+	all: function() {
+		var array = [];
+		for (var i = 0; i < arguments.length; i++) {
+			if (arguments[i] instanceof Array) {
+				for (var j = 0; j < arguments[i].length; j++) {
+					array.push(arguments[i][j]);
+				}
+			}
+			else {
+				array.push(arguments[i]);
+			}
+		}
+		return new nabu.utils.promises(array);
+	}
+}
