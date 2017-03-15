@@ -1,3 +1,14 @@
+## lessons learned:
+## - support relative paths for resources (can do a checkout, work on private repos etc) and everything keeps working
+## - support namespace, name and stuff so we can identify a resource without knowing its true url
+## - need solution for "load order" if at all possible...
+## - need clean way to load themes...
+## - very verbose description for now, is it necessary?
+## - hard to target one specific thing, for example a single component (with related js/tpl/gcss files is a sub folder)
+## - includes/excludes are hard to work with in combination with scopes, scopes don't have blacklist...
+## - hard to pinpoint something exactly, might need to go full path, simply map the filesystem in the json
+## - need way to target where resources are stored so we can include (e.g.) static resources
+
 file ?= "bundle.json"
 json ?= when(file ? resources(),
 	json.objectify(resource(file), true),
@@ -33,6 +44,8 @@ resolveRequires = lambda
 replacer = nabu.utils.lambdas()/templater
 
 inject(scope(1))
+
+result = structure()
 
 # included remote bundle.json files should _only_ have the scope dependencies, all other scopes are ignored
 resolveJson = lambda
@@ -125,10 +138,12 @@ resolveJson = lambda
 								bundleName: json/name,
 								bundleVersion: json/version))
 						else if (include && print)
-							if (dependency ~ ".*\.gcss")
-								gcss = function(replace("/", ".", target) + "." + replace(".gcss", "", correct/dependency))
+							if (dependency ~ ".*\.(gcss|glue)")
+								scriptName = replace(".*?/private/scripts/", "", target)
+								scriptName = replace("/", ".", scriptName) + when(context/folder != null, "." + replace("/", ".", context/folder), "") + "." + replace("\.(gcss|glue)", "", correct/dependency)
+								gcss = function(scriptName)
 								gcss = bind(gcss, scope())
-								gcss()
+								result = structure(result, gcss())
 							else if (dependency ~ ".*\.tpl")
 								if (context/template != null && context/template)
 									echo(template(replacer(read(resource))))
