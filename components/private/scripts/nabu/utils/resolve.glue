@@ -8,7 +8,10 @@ target ?= when(file ? resources(),
 boolean force ?= environment("development") == true && request.get("force") == true
 regex ?= ".*\.js"
 string [] scopes ?= null
+# whether or not to print the resulting resources
 boolean print ?= true
+# whether or not we should put everything on the root
+boolean root ?= false
 
 #registry ?= "http://registry.npmjs.org"
 
@@ -42,6 +45,10 @@ resolveJson = lambda
 	@return
 	resolved ?= series()
 	
+	boolean root ?= false
+	
+	bundleEndpoint ?= null
+	
 	if (json/variables != null)
 		inject(json/variables)
 	
@@ -54,10 +61,10 @@ resolveJson = lambda
 				# default type is "file" which we only resolve if necessary
 				# modules always have to be recursively resolved
 				if ((dependency !? excludes && (size(includes) == 0 || dependency ? includes) && dependency ~ regex) || type == "bundle")
-					dependencyTarget = when(context/folder == null, target, target + "/" + context/folder) + when(dependency == "$root", "", "/" + dependency)
+					dependencyTarget = when(context/folder == null, target, target + "/" + context/folder) + when(root, "", "/" + dependency)
 					
 					if (type == "bundle")
-						dependencyTarget = dependencyTarget + when(dependency == "$root", "/bundle-" + scope + ".json", "/bundle.json")
+						dependencyTarget = dependencyTarget + when(root, "/bundle-" + dependency + ".json", "/bundle.json")
 						
 					# whether or not we should include it in the output
 					# the only reason not to is if it was already resolved before
@@ -71,6 +78,12 @@ resolveJson = lambda
 						inject(context)
 						# template the url
 						url = template(context/url)
+						
+						# if it's not absolute, make it so
+						if (url !~ "^[\w]+:.*" && bundleEndpoint != null)
+							console("Converting relative url " + url + " to absolute " + bundleEndpoint)
+							url = replace("[^/]+$", "", bundleEndpoint) + url
+							
 						if (url ? resolved/url)
 							console("Skipping previously resolved dependency: " + dependency + " [" + url + "]")
 							include = false
@@ -98,7 +111,8 @@ resolveJson = lambda
 							# the question is, do you want to resolve them in the location of the original bundle
 							# or in the location of the current bundle
 							# currently we opt for the latter as it makes it more clear who imports what
-							resolved = merge(resolved, resolveJson(replace("/bundle[^/]*.json$", "", dependencyTarget), json.objectify(read(correct/target), true), context/scopes, context/includes, context/excludes, resolved))
+							resolved = merge(resolved, resolveJson(replace("/bundle[^/]*.json$", "", dependencyTarget), json.objectify(read(correct/target), true), context/scopes, context/includes, context/excludes, resolved, root: false,
+								bundleEndpoint: when(type == "bundle", url, bundleEndpoint)))
 						else if (include && print)
 							if (dependency ~ ".*\.gcss")
 								gcss = function(replace("/", ".", target) + "." + replace(".gcss", "", correct/dependency))
@@ -121,6 +135,7 @@ resolveJson = lambda
 						# we then add the requirements in it so they can be resolved
 						# include the original variables so you can refer to them
 						resolved = merge(resolved, 
-							resolveJson(target, structure(variables: json/variables, scopes: structure(requires: resolveRequires(json, context/requires))), resolved: resolved))						
+							resolveJson(target, structure(variables: json/variables, scopes: structure(requires: resolveRequires(json, context/requires))), resolved: resolved, root: false,
+								bundleEndpoint: when(type == "bundle", url, bundleEndpoint)))						
 			
-resolveJson(target, json, scopes)
+resolveJson(target, json, scopes, root: root)

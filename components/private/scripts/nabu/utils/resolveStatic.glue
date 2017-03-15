@@ -1,0 +1,17 @@
+file ?= "bundle.json"
+json ?= when(file ? resources(),
+	json.objectify(resource(file), true),
+	json.objectify(read("repository:" + environment("webApplicationId") + ":/private/" + file), true))
+boolean force ?= environment("development") == true && request.get("force") == true
+string [] scopes ?= null
+
+console("\n","-------------> RESOLVING STATIC" + scopes)
+
+# resolve static resources
+nabu.utils.resolve(
+	json: json,
+	scopes: scopes, 
+	target: "repository:" + environment("webApplicationId") + ":/public/resources",
+	regex: ".*\.(?!css|js|gcss|tpl)[^.]+$",
+	print: false,
+	root: true)
