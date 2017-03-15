@@ -49,6 +49,10 @@ resolveJson = lambda
 	
 	bundleEndpoint ?= null
 	
+	bundleNamespace ?= null
+	bundleName ?= null
+	bundleVersion ?= null
+	
 	if (json/variables != null)
 		inject(json/variables)
 	
@@ -74,6 +78,7 @@ resolveJson = lambda
 					if (context/url != null)
 						# make sure we can detect when content was not loaded and not accidently use previous content
 						content = null
+						
 						# inject the context so you can use variables in the url
 						inject(context)
 						# template the url
@@ -81,10 +86,9 @@ resolveJson = lambda
 						
 						# if it's not absolute, make it so
 						if (url !~ "^[\w]+:.*" && bundleEndpoint != null)
-							console("Converting relative url " + url + " to absolute " + bundleEndpoint)
 							url = replace("[^/]+$", "", bundleEndpoint) + url
 							
-						if (url ? resolved/url)
+						if (url ? resolved/url || size(resolved[bundleNamespace = /bundleNamespace && bundleName = /bundleName && name = /dependency && scope = /scope]) > 0)
 							console("Skipping previously resolved dependency: " + dependency + " [" + url + "]")
 							include = false
 						else
@@ -102,7 +106,11 @@ resolveJson = lambda
 							resolved = merge(resolved, structure(
 									url: url,
 									target: dependencyTarget,
-									dependency: dependency
+									dependency: dependency,
+									bundleNamespace: bundleNamespace,
+									bundleName: bundleName,
+									name: dependency,
+									scope: scope
 								))
 						# get the correct resolution
 						correct = first(resolved[url = /url])
@@ -112,7 +120,10 @@ resolveJson = lambda
 							# or in the location of the current bundle
 							# currently we opt for the latter as it makes it more clear who imports what
 							resolved = merge(resolved, resolveJson(replace("/bundle[^/]*.json$", "", dependencyTarget), json.objectify(read(correct/target), true), context/scopes, context/includes, context/excludes, resolved, root: false,
-								bundleEndpoint: when(type == "bundle", url, bundleEndpoint)))
+								bundleEndpoint: url,
+								bundleNamespace: json/namespace,
+								bundleName: json/name,
+								bundleVersion: json/version))
 						else if (include && print)
 							if (dependency ~ ".*\.gcss")
 								gcss = function(replace("/", ".", target) + "." + replace(".gcss", "", correct/dependency))

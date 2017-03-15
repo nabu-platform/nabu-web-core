@@ -5,8 +5,6 @@ json ?= when(file ? resources(),
 boolean force ?= environment("development") == true && request.get("force") == true
 string [] scopes ?= null
 
-console("\n","-------------> RESOLVING STATIC" + scopes)
-
 # resolve static resources
 nabu.utils.resolve(
 	json: json,
