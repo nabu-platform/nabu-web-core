@@ -1,2 +1,2 @@
 # exchanges templates with script tags for compatilibity with internet explorer
-templater = lambda(x, replace("<template", "<script type='x/templates'", replace("</template>", "</script>", x)))
+templater = lambda(x, replace("(?m)^<template", "<script type='x/templates'", replace("(?m)^</template>", "</script>", x)))

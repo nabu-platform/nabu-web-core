@@ -1,0 +1,17 @@
+{
+	"name": "utils",
+	"version": "1.0",
+	"variables": {
+		"utils": "repository:nabu.web.core.components:/private/scripts/nabu/javascript/utils"
+	},
+	"dependencies": {
+		"router.js": {
+			"url": "${utils}/router-${version}.js",
+			"version": "1.0"
+		},
+		"vue-router.js": {
+			"url": "${utils}/vue-router-${version}.js",
+			"version": "1.0"
+		}
+	}
+}

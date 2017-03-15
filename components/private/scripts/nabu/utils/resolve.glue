@@ -6,9 +6,11 @@ target ?= when(file ? resources(),
 	system.pwd(),
 	"repository:" + environment("webApplicationId") + ":/private/scripts/bundles")
 boolean force ?= environment("development") == true && request.get("force") == true
-registry ?= "http://registry.npmjs.org"
 regex ?= ".*\.js"
 string [] scopes ?= null
+boolean print ?= true
+
+#registry ?= "http://registry.npmjs.org"
 
 resolveRequires = lambda
 	json ?= null
@@ -23,6 +25,11 @@ resolveRequires = lambda
 			result = structure(result, lambda(key): scope[/key])
 		else
 			result = structure(result, lambda(key): context)
+
+# encodes templates to be more IE-compatible
+replacer = nabu.utils.lambdas()/templater
+
+inject(scope(1))
 
 # included remote bundle.json files should _only_ have the scope dependencies, all other scopes are ignored
 resolveJson = lambda
@@ -47,10 +54,10 @@ resolveJson = lambda
 				# default type is "file" which we only resolve if necessary
 				# modules always have to be recursively resolved
 				if ((dependency !? excludes && (size(includes) == 0 || dependency ? includes) && dependency ~ regex) || type == "bundle")
-					dependencyTarget = when(context/folder == null, target + "/" + dependency, target + "/" + context/folder + "/" + dependency)
+					dependencyTarget = when(context/folder == null, target, target + "/" + context/folder) + when(dependency == "$root", "", "/" + dependency)
 					
 					if (type == "bundle")
-						dependencyTarget = dependencyTarget + "/bundle.json"
+						dependencyTarget = dependencyTarget + when(dependency == "$root", "/bundle-" + scope + ".json", "/bundle.json")
 						
 					# whether or not we should include it in the output
 					# the only reason not to is if it was already resolved before
@@ -91,14 +98,22 @@ resolveJson = lambda
 							# the question is, do you want to resolve them in the location of the original bundle
 							# or in the location of the current bundle
 							# currently we opt for the latter as it makes it more clear who imports what
-							resolved = merge(resolved, resolveJson(replace("/bundle.json$", "", dependencyTarget), json.objectify(read(correct/target), true), context/scopes, context/includes, context/excludes, resolved))
-						else if (include)
+							resolved = merge(resolved, resolveJson(replace("/bundle[^/]*.json$", "", dependencyTarget), json.objectify(read(correct/target), true), context/scopes, context/includes, context/excludes, resolved))
+						else if (include && print)
 							if (dependency ~ ".*\.gcss")
 								gcss = function(replace("/", ".", target) + "." + replace(".gcss", "", correct/dependency))
 								gcss = bind(gcss, scope())
 								gcss()
+							else if (dependency ~ ".*\.tpl")
+								if (context/template != null && context/template)
+									echo(template(replacer(read(resource))))
+								else
+									echo(replacer(read(resource)))
 							else
-								echo(read(correct/target), "\n")
+								if (context/template != null && context/template)
+									echo(template(read(correct/target), "\n"))
+								else
+									echo(read(correct/target), "\n")
 								
 					# a context can have requires which _must_ be resolved
 					if (context/requires != null)
