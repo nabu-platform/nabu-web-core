@@ -212,7 +212,7 @@ resolveResources = method
 							result = structure(result, script())
 							
 						else if (childResolved/target ~ ".*\.tpl")
-							if (context/template != null && context/template)
+							if (context/template == null || context/template == true)
 								echo(template(replacer(read(childResolved/target)), parentScope))
 							else
 								echo(replacer(read(childResolved/target)))
