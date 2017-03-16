@@ -9,23 +9,37 @@
 ## - hard to pinpoint something exactly, might need to go full path, simply map the filesystem in the json
 ## - need way to target where resources are stored so we can include (e.g.) static resources
 
-file ?= "bundle.json"
-json ?= when(file ? resources(),
-	json.objectify(resource(file), true),
-	json.objectify(read("repository:" + environment("webApplicationId") + ":/private/" + file), true))
-target ?= when(file ? resources(),
-	system.pwd(),
-	"repository:" + environment("webApplicationId") + ":/private/scripts/bundles")
-boolean force ?= environment("development") == true && request.get("force") == true
-regex ?= ".*\.js"
-string [] scopes ?= null
-# whether or not to print the resulting resources
-boolean print ?= true
-# whether or not we should put everything on the root
-boolean root ?= false
+# input
+sequence
+	target ?= "repository:" + environment("webApplicationId") + ":/private/provided/scripts"
+	string regex ?= ".*\.js"
+	boolean force ?= environment("development") == true && request.get("force") == true
+	
+	# whether or not to print the resulting resources
+	boolean print ?= true
+	
+	# whether or not we should put everything on the root
+	boolean root ?= false
+	
+	# you can whitelist or blacklist paths
+	string [] includes ?= series()
+	string [] excludes ?= series()
+	
+	# whether to inject everything on the root of the target
+	boolean root ?= false
+	
+	# whether to print out debugging information
+	boolean debug ?= false
 
-#registry ?= "http://registry.npmjs.org"
+# load bundle
+sequence
+	bundlePath = "repository:" + environment("webApplicationId") + ":/private/provided/bundle.json"
+	if (!exists(bundlePath))
+		throw("Could not find bundle.json")
+	
+	json = json.objectify(read(bundlePath), raw: true)
 
+# lambda to resolve required dependencies
 resolveRequires = lambda
 	json ?= null
 	requires ?= null
@@ -43,125 +57,181 @@ resolveRequires = lambda
 # encodes templates to be more IE-compatible
 replacer = nabu.utils.lambdas()/templater
 
+# inherit the variables from the parent scope so they can be injected
 inject(scope(1))
 
 result = structure()
 
-# included remote bundle.json files should _only_ have the scope dependencies, all other scopes are ignored
-resolveJson = lambda
-	target ?= null
-	json ?= null
-	string [] scopes ?= null
-	includes ?= series()
-	excludes ?= series()
+log = lambda(x, when(debug, console(x)))
+
+resolveResources = lambda
+	# the bundle context we are working with, this contains:
+	# namespace
+	# name
+	# target: where we are writing to (is updated for each recursion)
+	# path: the current path we are working on (is updated for each recursion)
+	# includes: the includes that were registered
+	# excludes: the excludes that were registered
+	# endpoint: the endpoint of the bundle itself (to resolve relative urls)
+	bundleContext ?= null
 	
-	@return
+	# the resources we are working with
+	resources ?= null
+
+	# this script takes the already resolved scripts and adds its own	
+	# each resolved item contains:
+	# - namespace
+	# - name
+	# - path: the path in the original bundle to uniquely identify it
+	# - target: where it was written so we can re-read it if necessary
+	# - url: the url it was picked up from
 	resolved ?= series()
 	
+	# the newly resolved items, these are sent back to be appended to the ever growing list of items
+	@return
+	newlyResolved ?= series()
+	
 	boolean root ?= false
+
+	for (key : keys(resources))
 	
-	bundleEndpoint ?= null
-	
-	bundleNamespace ?= null
-	bundleName ?= null
-	bundleVersion ?= null
-	
-	if (json/variables != null)
-		inject(json/variables)
-	
-	for (scope : keys(json/scopes))
-		if (scopes == null || size(scopes) == 0 || scope ? scopes)
-			for (dependency : keys(json/scopes[/scope]))
-				scopeContent = json/scopes[/scope]
-				context = scopeContent[/dependency]
-				type = when(context/type != null, context/type, json/scopes[/scope]/type)
-				# default type is "file" which we only resolve if necessary
-				# modules always have to be recursively resolved
-				if ((dependency !? excludes && (size(includes) == 0 || dependency ? includes) && dependency ~ regex) || type == "bundle")
-					dependencyTarget = when(context/folder == null, target, target + "/" + context/folder) + when(root, "", "/" + dependency)
-					
-					if (type == "bundle")
-						dependencyTarget = dependencyTarget + when(root, "/bundle-" + dependency + ".json", "/bundle.json")
-						
-					# whether or not we should include it in the output
-					# the only reason not to is if it was already resolved before
-					include = true
-					# calculate the url to see if we have already included it
-					# you are resolving from a remote location (github, cdn,...)
-					if (context/url != null)
-						# make sure we can detect when content was not loaded and not accidently use previous content
-						content = null
-						
-						# inject the context so you can use variables in the url
-						inject(context)
-						# template the url
-						url = template(context/url)
-						
-						# if it's not absolute, make it so
-						if (url !~ "^[\w]+:.*" && bundleEndpoint != null)
-							url = replace("[^/]+$", "", bundleEndpoint) + url
-							
-						if (url ? resolved/url || size(resolved[bundleNamespace = /bundleNamespace && bundleName = /bundleName && name = /dependency && scope = /scope]) > 0)
-							console("Skipping previously resolved dependency: " + dependency + " [" + url + "]")
-							include = false
-						else
-							# only update it if we force it or it doesn't exist yet
-							if (force || !exists(dependencyTarget))
-								console("Downloading dependency: " + dependency + " [" + url + "]")
-								# get the content
-								content = read(url)
-								# write the content to the target
-								write(dependencyTarget, content)
-							else
-								console("Skipping existing dependency: " + dependency + " [" + url + "]")
-								
-							# always add it to resolved, whether or not it was (re)downloaded
-							resolved = merge(resolved, structure(
-									url: url,
-									target: dependencyTarget,
-									dependency: dependency,
-									bundleNamespace: bundleNamespace,
-									bundleName: bundleName,
-									name: dependency,
-									scope: scope
-								))
-						# get the correct resolution
-						correct = first(resolved[url = /url])
-						if (type == "bundle")
-							# if you have items that are from an already imported bundle but not imported themselves (e.g. different scope or excluded/not included)
-							# the question is, do you want to resolve them in the location of the original bundle
-							# or in the location of the current bundle
-							# currently we opt for the latter as it makes it more clear who imports what
-							resolved = merge(resolved, resolveJson(replace("/bundle[^/]*.json$", "", dependencyTarget), json.objectify(read(correct/target), true), context/scopes, context/includes, context/excludes, resolved, root: false,
-								bundleEndpoint: url,
-								bundleNamespace: json/namespace,
-								bundleName: json/name,
-								bundleVersion: json/version))
-						else if (include && print)
-							if (dependency ~ ".*\.(gcss|glue)")
-								scriptName = replace(".*?/private/scripts/", "", target)
-								scriptName = replace("/", ".", scriptName) + when(context/folder != null, "." + replace("/", ".", context/folder), "") + "." + replace("\.(gcss|glue)", "", correct/dependency)
-								gcss = function(scriptName)
-								gcss = bind(gcss, scope())
-								result = structure(result, gcss())
-							else if (dependency ~ ".*\.tpl")
-								if (context/template != null && context/template)
-									echo(template(replacer(read(resource))))
-								else
-									echo(replacer(read(resource)))
-							else
-								if (context/template != null && context/template)
-									echo(template(read(correct/target), "\n"))
-								else
-									echo(read(correct/target), "\n")
-								
-					# a context can have requires which _must_ be resolved
-					if (context/requires != null)
-						# we create a bundle on the fly with one scope: requires
-						# we then add the requirements in it so they can be resolved
-						# include the original variables so you can refer to them
-						resolved = merge(resolved, 
-							resolveJson(target, structure(variables: json/variables, scopes: structure(requires: resolveRequires(json, context/requires))), resolved: resolved, root: false,
-								bundleEndpoint: when(type == "bundle", url, bundleEndpoint)))						
+		childPath = when(bundleContext/path == null, key, bundleContext/path + "/" + key)
+		childTarget = bundleContext/target + "/" + key
+		
+		# check that it passes the whitelist
+		continue = size(bundleContext/includes) == 0 || childPath ? bundleContext/includes || true ? (childPath ~ (bundleContext/includes + "/.*"))
+		
+		# check that it passes the blacklist
+		if (continue)
+			continue = size(bundleContext/excludes) == 0 || (childPath !? bundleContext/excludes && true !? (childPath ~ (bundleContext/excludes + "/.*")))
 			
-resolveJson(target, json, scopes, root: root)
+		if (continue)
+			# the current resource
+			resource = resources[/key]
+			
+			# if we have an actual resource, not a container, let's do something
+			if (resource/url != null)
+				log("Resolving " + bundleContext/name + ": " + childPath)		
+				
+				# only use the resource if it matches the regex or it is a bundle which we have to recurse
+				if (key ~ regex || resource/type == "bundle")
+				
+					# the content of the resource, it is not always necessary so explicitly set it to null to detect whether it's there
+					content = null
+					
+					# the resolved for this child, check if one already exists
+					childResolved = first(resolved[namespace = /bundleContext/namespace && name = /bundleContext/name && path = /childPath])
+					
+					# whether or not to inject the content, only inject it the first time (so if it has not yet been resolved)
+					include = childResolved == null
+					
+					# if we already resolved it, skip
+					if (childResolved != null)
+						log("\tSkipping because previous resolved: " + childResolved/target)
+						
+					# only update it if we force it or it doesn't exist yet
+					else
+						# always calculate the url so we can add it to the resolved
+						# this url will serve (for bundles for example) as a point for relative paths to start from
+						url = resource/url
+						# if it's not absolute, make it so
+						if (url !~ "^[\w]+:.*" && bundleContext/endpoint != null)
+							url = replace("//", "/", replace("[^/]+$", "", bundleContext/endpoint) + "/" + url)
+	
+						# if we are in development mode, check the last modified of the target resource
+						lastModified = when(environment("development") == true, modified(url), null)
+						
+						if (force || !exists(childTarget) || when(lastModified == null, false, lastModified > modified(childTarget)))
+							log("\tReading from: " + url)
+							# get the content
+							content = file.read(url)
+	
+							log("\tWriting to: " + childTarget)
+							# write the content to the target
+							file.write(childTarget, content)
+						else
+							log("\tSkipping because it exists: " + childTarget)
+							
+						# set the child resolved
+						childResolved = structure(
+							namespace: bundleContext/namespace,
+							name: bundleContext/name,
+							path: childPath,
+							target: childTarget,
+							url: url)
+							
+						# add it to resolved
+						resolved = merge(resolved, childResolved)
+						
+						# if we have content at this stage, we resolved it
+						if (content != null)
+							newlyResolved = merge(newlyResolved, childResolved)
+				
+					# if we have a bundle, always resolve further				
+					if (resource/type == "bundle")
+						# it is possible we did not read the content in the above
+						if (content == null)
+							content = read(childResolved/target)
+							
+						# parse the content
+						referenced = json.objectify(content, raw: true)
+						
+						# if you have items that are from an already imported bundle but not imported themselves (e.g. different scope or excluded/not included)
+						# the question is, do you want to resolve them in the location of the original bundle
+						# or in the location of the current bundle
+						# currently we opt for the latter as it makes it more clear who imports what
+						resolved = merge(resolved, resolveResources(
+							bundleContext: structure(
+								namespace: referenced/namespace,
+								name: referenced/name,
+								target: when(root, bundleContext/target, replace("\.json$", "", childTarget)),
+								includes: resource/includes,
+								excludes: resource/excludes, 
+								endpoint: childResolved/url),
+							resources: referenced/resources,
+							resolved: resolved))
+							
+					else if (include && print)
+						if (key ~ ".*\.(gcss|glue)")
+							scriptName = replace(".*?/private/provided/scripts/", "", childResolved/target)
+							scriptName = replace("/", ".", replace("\.(gcss|glue)", "", scriptName))
+							script = function(scriptName)
+							
+							if (script == null)
+								throw("Could not find script: " + scriptName)
+								
+							script = bind(script, scope())
+							result = structure(result, script())
+							
+						else if (childResolved/target ~ ".*\.tpl")
+							if (context/template != null && context/template)
+								echo(template(replacer(read(childResolved/target))))
+							else
+								echo(replacer(read(childResolved/target)))
+						else
+							if (context/template != null && context/template)
+								echo(template(read(childResolved/target), "\n"))
+							else
+								echo(read(childResolved/target), "\n")
+					
+			# if we have a container, recurse
+			else
+				# pass along the root if we are just going through dirs, only a new bundle breaks this root requirement
+				resolved = merge(resolved, resolveResources(
+					bundleContext: structure(bundleContext,
+						path: when(resource/type == "bundle", replace("\.json$", "", childPath), childPath),
+						target: when(root, bundleContext/target, childTarget)),
+					resources: resource,
+					resolved: resolved,
+					root: root))
+		
+resolveResources(
+	bundleContext: structure(
+		namespace: json/namespace,
+		name: json/name,
+		target: target,
+		includes: includes,
+		excludes: excludes,
+		endpoint: bundlePath),
+	resources: json/resources,
+	root: root)
