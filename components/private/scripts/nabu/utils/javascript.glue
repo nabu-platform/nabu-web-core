@@ -1,0 +1,27 @@
+if (environment("mobile") != true)
+	response.header("Content-Type", "application/javascript")
+
+# resolve the javascript files
+nabu.utils.resolve(regex: ".*\.js")
+
+directory = "repository:" + environment("webApplicationId") + ":/public/artifacts"
+
+# depending on the environment, check for the existence of a file and load it
+switch (environment("mobile"))
+	case(true)
+		environmentSpecific = "mobile.js"
+	default
+		environmentSpecific = "web.js"
+
+# the files that exist in almost every project we create
+files = series("application.js", "routes.js", "swagger.js", environmentSpecific)
+
+# load the fixed files that we almost always have
+for (file : files)
+	if (exists(directory + "/" + file))
+		echo("\n", template(read(directory + "/" + file)))
+
+# add all the other files in the directory
+for (file : file.list(directory, fileRegex: ".*\.js", recursive: true))
+	if (file !? files)
+		echo("\n", template(read(directory + "/" + file)))

@@ -1,0 +1,17 @@
+if (!environment("mobile"))
+	response.header("Content-Type", "text/css")
+
+// load any variable files we might have
+inject(nabu.utils.resolve(regex: ".*\.glue")/result)
+
+// load any css and gcss files
+nabu.utils.resolve(regex: ".*\.(css|gcss)")
+
+directory = "repository:" + environment("webApplicationId") + ":/public/artifacts"
+
+// load all the artifacts
+for (file : file.list(directory, fileRegex: ".*\.(css|gcss)", recursive: true))
+	if (file ~ ".*\.css")
+		echo("\n", template(read(directory + "/ "+ file)))
+	else
+		eval(template(read(directory + "/" + file)), scope())

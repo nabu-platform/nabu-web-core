@@ -11,7 +11,7 @@
 
 # input
 sequence
-	target ?= "repository:" + environment("webApplicationId") + ":/private/provided/scripts"
+	target ?= "repository:" + environment("webApplicationId") + ":/private/provided/artifacts"
 	string regex ?= ".*\.js"
 	boolean force ?= environment("development") == true && request.get("force") == true
 	
@@ -58,13 +58,13 @@ resolveRequires = lambda
 replacer = nabu.utils.lambdas()/templater
 
 # inherit the variables from the parent scope so they can be injected
-inject(scope(1))
+parentScope = scope(1)
 
 result = structure()
 
 log = lambda(x, when(debug, console(x)))
 
-resolveResources = lambda
+resolveResources = method
 	# the bundle context we are working with, this contains:
 	# namespace
 	# name
@@ -88,10 +88,11 @@ resolveResources = lambda
 	resolved ?= series()
 	
 	# the newly resolved items, these are sent back to be appended to the ever growing list of items
-	@return
 	newlyResolved ?= series()
 	
 	boolean root ?= false
+
+	result ?= structure()
 
 	for (key : keys(resources))
 	
@@ -180,7 +181,7 @@ resolveResources = lambda
 						# the question is, do you want to resolve them in the location of the original bundle
 						# or in the location of the current bundle
 						# currently we opt for the latter as it makes it more clear who imports what
-						resolved = merge(resolved, resolveResources(
+						resolveResult = resolveResources(
 							bundleContext: structure(
 								namespace: referenced/namespace,
 								name: referenced/name,
@@ -189,43 +190,57 @@ resolveResources = lambda
 								excludes: resource/excludes, 
 								endpoint: childResolved/url),
 							resources: referenced/resources,
-							resolved: resolved))
+							resolved: resolved,
+							result: result)
+						
+						# feedback any changes to the resulting scope
+						result = resolveResult/result
+						
+						# feedback any newly resolved items
+						resolved = merge(resolved, resolveResult/newlyResolved)
 							
 					else if (include && print)
 						if (key ~ ".*\.(gcss|glue)")
-							scriptName = replace(".*?/private/provided/scripts/", "", childResolved/target)
+							scriptName = replace(".*?/private/provided/artifacts/", "", childResolved/target)
 							scriptName = replace("/", ".", replace("\.(gcss|glue)", "", scriptName))
 							script = function(scriptName)
 							
 							if (script == null)
 								throw("Could not find script: " + scriptName)
 								
-							script = bind(script, scope())
+							script = bind(script, parentScope)
 							result = structure(result, script())
 							
 						else if (childResolved/target ~ ".*\.tpl")
 							if (context/template != null && context/template)
-								echo(template(replacer(read(childResolved/target))))
+								echo(template(replacer(read(childResolved/target)), parentScope))
 							else
 								echo(replacer(read(childResolved/target)))
 						else
 							if (context/template != null && context/template)
-								echo(template(read(childResolved/target), "\n"))
+								echo(template(read(childResolved/target), parentScope), "\n")
 							else
 								echo(read(childResolved/target), "\n")
 					
 			# if we have a container, recurse
 			else
 				# pass along the root if we are just going through dirs, only a new bundle breaks this root requirement
-				resolved = merge(resolved, resolveResources(
+				resolveResult = resolveResources(
 					bundleContext: structure(bundleContext,
 						path: when(resource/type == "bundle", replace("\.json$", "", childPath), childPath),
 						target: when(root, bundleContext/target, childTarget)),
 					resources: resource,
 					resolved: resolved,
-					root: root))
+					root: root,
+					result: result)
+					
+				# feedback any changes to the resulting scope
+				result = resolveResult/result
+				
+				# feedback any newly resolved items
+				resolved = merge(resolved, resolveResult/newlyResolved)
 		
-resolveResources(
+resolveResult = resolveResources(
 	bundleContext: structure(
 		namespace: json/namespace,
 		name: json/name,
@@ -234,4 +249,8 @@ resolveResources(
 		excludes: excludes,
 		endpoint: bundlePath),
 	resources: json/resources,
-	root: root)
+	root: root,
+	result: result)
+	
+# feedback any changes to the resulting scope
+result = resolveResult/result

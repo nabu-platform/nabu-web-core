@@ -1,0 +1,15 @@
+# get variables if necessary
+inject(scope(1))
+
+directory = "repository:" + environment("webApplicationId") + ":/public/artifacts"
+replacer = nabu.utils.lambdas()/templater
+
+# resolve included tpls
+nabu.utils.resolve(regex: ".*\.tpl")
+
+# resolve static resources
+nabu.utils.resolveStatic(includes: "vendor")
+
+# resolve the tpls you have in your project
+for (file : file.list(directory, fileRegex: ".*\.tpl", recursive: true))
+	echo("\n", replacer(template(read(directory + "/" + file))))
