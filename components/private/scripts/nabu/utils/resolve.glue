@@ -110,6 +110,19 @@ resolveResources = method
 			# the current resource
 			resource = resources[/key]
 			
+			if (resource/requires != null)
+				resolveResult = resolveResources(
+						bundleContext: bundleContext,
+						resources: resource/requires,
+						resolved: resolved,
+						result: result)
+					
+					# feedback any changes to the resulting scope
+					result = resolveResult/result
+					
+					# feedback any newly resolved items
+					resolved = merge(resolved, resolveResult/newlyResolved)
+			
 			# if we have an actual resource, not a container, let's do something
 			if (resource/url != null)
 				log("Resolving " + bundleContext/name + ": " + childPath)		
@@ -212,13 +225,16 @@ resolveResources = method
 							result = structure(result, script())
 							
 						else if (childResolved/target ~ ".*\.tpl")
-							if (context/template == null || context/template == true)
+							if (resource/template == null || resource/template == true)
 								echo(template(replacer(read(childResolved/target)), parentScope))
 							else
 								echo(replacer(read(childResolved/target)))
 						else
-							if (context/template != null && context/template)
-								echo(template(read(childResolved/target), parentScope), "\n")
+							if (resource/template == null || resource/template == true)
+								try
+									echo(template(read(childResolved/target), parentScope), "\n")
+									catch
+										console("Could not template " + childResolved/target, resource)
 							else
 								echo(read(childResolved/target), "\n")
 					

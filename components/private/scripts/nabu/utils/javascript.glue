@@ -14,7 +14,7 @@ switch (environment("mobile"))
 		environmentSpecific = "web.js"
 
 # the files that exist in almost every project we create
-files = series("application.js", "routes.js", "swagger.js", environmentSpecific)
+files = series("application.js", "routes.js", "swagger.js", "widgets.js", environmentSpecific)
 
 # load the fixed files that we almost always have
 for (file : files)
