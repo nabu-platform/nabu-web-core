@@ -33,11 +33,11 @@ sequence
 
 # load bundle
 sequence
-	bundlePath = "repository:" + environment("webApplicationId") + ":/private/provided/bundle.json"
+	bundlePath ?= "repository:" + environment("webApplicationId") + ":/private/provided/bundle.json"
 	if (!exists(bundlePath))
-		throw("Could not find bundle.json")
+		throw("Could not find bundle.json at: " + bundlePath)
 	
-	json = json.objectify(read(bundlePath), raw: true)
+	json ?= json.objectify(read(bundlePath), raw: true)
 
 # lambda to resolve required dependencies
 resolveRequires = lambda

@@ -1,17 +1,20 @@
+target ?= null
+bundlePath ?= null
+string [] directories ?= fragmentResources("public/artifacts")
+
 if (!environment("mobile"))
 	response.header("Content-Type", "text/css")
 
 // load any variable files we might have
-inject(nabu.utils.resolve(regex: ".*\.glue")/result)
+inject(nabu.utils.resolve(target: target, bundlePath: bundlePath, regex: ".*\.glue")/result)
 
 // load any css and gcss files
-nabu.utils.resolve(regex: ".*\.(css|gcss)")
+nabu.utils.resolve(target: target, bundlePath: bundlePath, regex: ".*\.(css|gcss)")
 
-directory = "repository:" + environment("webApplicationId") + ":/public/artifacts"
-
-// load all the artifacts
-for (file : file.list(directory, fileRegex: ".*\.(css|gcss)", recursive: true))
-	if (file ~ ".*\.css")
-		echo("\n", template(read(directory + "/ "+ file)))
-	else
-		eval(template(read(directory + "/" + file)), scope())
+for (directory : directories)
+	// load all the artifacts
+	for (file : file.list(directory, fileRegex: ".*\.(css|gcss)", recursive: true))
+		if (file ~ ".*\.css")
+			echo("\n", template(read(directory + "/ "+ file)))
+		else
+			eval(template(read(directory + "/" + file)), scope())

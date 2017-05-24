@@ -1,15 +1,22 @@
+target ?= null
+staticTarget ?= null
+bundlePath ?= null
+[] directories ?= fragmentResources("public/artifacts")
+
 # get variables if necessary
 inject(scope(1))
 
-directory = "repository:" + environment("webApplicationId") + ":/public/artifacts"
 replacer = nabu.utils.lambdas()/templater
 
 # resolve included tpls
-nabu.utils.resolve(regex: ".*\.tpl")
+nabu.utils.resolve(target: target, bundlePath: bundlePath, regex: ".*\.tpl")
 
 # resolve static resources
-nabu.utils.resolveStatic(includes: "vendor")
+# used to have param: includes: "vendor"
+# not sure why...
+nabu.utils.resolveStatic(target: staticTarget, bundlePath: bundlePath)
 
-# resolve the tpls you have in your project
-for (file : file.list(directory, fileRegex: ".*\.tpl", recursive: true))
-	echo("\n", replacer(template(read(directory + "/" + file))))
+for (directory : directories)
+	# resolve the tpls you have in your project
+	for (file : file.list(directory, fileRegex: ".*\.tpl", recursive: true))
+		echo("\n", replacer(template(read(directory + "/" + file))))

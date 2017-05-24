@@ -2,9 +2,14 @@
 	<head>
 ${{
 title ?= "Anonymous"
-css ?= "resources/css"
+css ?= "${server.root()}resources/css"
 boolean style ?= true
-javascript ?= "resources/javascript"
+javascript ?= "${server.root()}resources/javascript"
+target ?= null
+staticTarget ?= null
+bundlePath ?= null
+[] directories ?= null
+
 if (environment("mobile") == true)
 	echo('		<meta http-equiv="Content-Security-Policy" content="default-src \'self\' data: gap: cdvfile: https://ssl.gstatic.com \'unsafe-eval\' \'unsafe-inline\'; connect-src \'self\' ws: wss: http: https:; style-src \'self\'; media-src *">')
 	echo('		<meta name="format-detection" content="telephone=no">')
@@ -17,7 +22,7 @@ if (environment("mobile") == true)
 		<link rel="stylesheet" type="text/css" href="${css}?version=${environment('version')}">
 		<title>${title}</title>
 ${{
-nabu.utils.tpl()
+nabu.utils.tpl(target: target, staticTarget: staticTarget, bundlePath: bundlePath, directories: directories)
 }}
 	</head>
 	<body${when(style, " class='n-default'", "")}></body>

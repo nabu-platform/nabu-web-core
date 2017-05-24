@@ -10,6 +10,9 @@ sequence
 	# you can whitelist or blacklist paths
 	string [] includes ?= series()
 	string [] excludes ?= series()
+	
+	bundlePath ?= null
+	json ?= null
 
 # resolve static resources
 nabu.utils.resolve(
@@ -18,4 +21,6 @@ nabu.utils.resolve(
 	includes: includes,
 	excludes: excludes,
 	print: print,
-	root: true)
+	root: true,
+	bundlePath: bundlePath,
+	json: json)
