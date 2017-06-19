@@ -88,7 +88,7 @@ nabu.services.SwaggerClient = function(parameters) {
 									throw "Unsupported collection format: " + collectionFormat;
 								}
 							}
-							result += value[j];
+							result += encodeURIComponent(value[j]);
 						}
 						value = result;
 					}
@@ -115,12 +115,12 @@ nabu.services.SwaggerClient = function(parameters) {
 			if (query[key] instanceof Array) {
 				for (var i = 0; i < query[key].length; i++) {
 					path += path.indexOf("?") >= 0 ? "&" : "?";
-					path += key + "=" + query[key][i];
+					path += encodeURIComponent(key) + "=" + encodeURIComponent(query[key][i]);
 				}
 			}
 			else {
 				path += path.indexOf("?") >= 0 ? "&" : "?";
-				path += key + "=" + query[key];
+				path += encodeURIComponent(key) + "=" + encodeURIComponent(query[key]);
 			}
 		});
 		return {

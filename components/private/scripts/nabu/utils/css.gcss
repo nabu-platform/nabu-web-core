@@ -9,7 +9,7 @@ if (!environment("mobile"))
 inject(nabu.utils.resolve(target: target, bundlePath: bundlePath, regex: ".*\.glue")/result)
 
 // load any css and gcss files
-nabu.utils.resolve(target: target, bundlePath: bundlePath, regex: ".*\.(css|gcss)")
+inject(nabu.utils.resolve(target: target, bundlePath: bundlePath, regex: ".*\.(css|gcss)")/result)
 
 for (directory : directories)
 	// load all the artifacts

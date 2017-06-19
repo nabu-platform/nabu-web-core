@@ -60,7 +60,7 @@ replacer = nabu.utils.lambdas()/templater
 # inherit the variables from the parent scope so they can be injected
 parentScope = scope(1)
 
-result = structure()
+result = structure(parentScope)
 
 log = lambda(x, when(debug, console(x)))
 
@@ -150,7 +150,10 @@ resolveResources = method
 						url = resource/url
 						# if it's not absolute, make it so
 						if (url !~ "^[\w]+:.*" && bundleContext/endpoint != null)
-							url = replace("//", "/", replace("[^/]+$", "", bundleContext/endpoint) + "/" + url)
+							url = replace("/[^/]+$", "", bundleContext/endpoint) + "/" + replace("^[/]+", "", url)
+	
+						# resolve parent references
+						url = replace("/[^/]+/../", "/", url)
 	
 						# if we are in development mode, check the last modified of the target resource
 						lastModified = when(environment("development") == true, modified(url), null)
@@ -221,18 +224,18 @@ resolveResources = method
 							if (script == null)
 								throw("Could not find script: " + scriptName)
 								
-							script = bind(script, parentScope)
+							script = bind(script, result)
 							result = structure(result, script())
 							
 						else if (childResolved/target ~ ".*\.tpl")
 							if (resource/template == null || resource/template == true)
-								echo(template(replacer(read(childResolved/target)), parentScope))
+								echo(template(replacer(read(childResolved/target)), result))
 							else
 								echo(replacer(read(childResolved/target)))
 						else
 							if (resource/template == null || resource/template == true)
 								try
-									echo(template(read(childResolved/target), parentScope), "\n")
+									echo(template(read(childResolved/target), result), "\n")
 									catch
 										console("Could not template " + childResolved/target, resource)
 							else
