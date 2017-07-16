@@ -25,5 +25,6 @@ ${{
 nabu.utils.tpl(target: target, staticTarget: staticTarget, bundlePath: bundlePath, directories: directories)
 }}
 	</head>
-	<body${when(style, " class='n-default'", "")}></body>
+	<body${when(style, " class='n-default'", "")}>
+	</body>
 </html>

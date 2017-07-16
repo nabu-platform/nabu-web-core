@@ -64,6 +64,8 @@ result = structure(parentScope)
 
 log = lambda(x, when(debug, console(x)))
 
+javascriptCompressor = function("nabu.web.compressor.Services.compressJavascript")
+
 resolveResources = method
 	# the bundle context we are working with, this contains:
 	# namespace
@@ -235,11 +237,13 @@ resolveResources = method
 						else
 							if (resource/template == null || resource/template == true)
 								try
-									echo(template(read(childResolved/target), result), "\n")
+									string childContent = template(read(childResolved/target), result)
 									catch
 										console("Could not template " + childResolved/target, resource)
 							else
-								echo(read(childResolved/target), "\n")
+								string childContent = read(childResolved/target)
+								
+							echo(childContent, "\n")
 					
 			# if we have a container, recurse
 			else

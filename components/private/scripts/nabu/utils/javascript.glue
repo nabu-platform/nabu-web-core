@@ -23,9 +23,11 @@ for (directory : directories)
 	# load the fixed files that we almost always have
 	for (file : files)
 		if (exists(directory + "/" + file))
-			echo("\n", template(read(directory + "/" + file)))
+			string fileContent = template(read(directory + "/" + file))
+			echo("\n", fileContent)
 	
 	# add all the other files in the directory
 	for (file : file.list(directory, fileRegex: ".*\.js", recursive: true))
 		if (file !? files)
-			echo("\n", template(read(directory + "/" + file)))
+			string fileContent = template(read(directory + "/" + file))
+			echo("\n", fileContent)
