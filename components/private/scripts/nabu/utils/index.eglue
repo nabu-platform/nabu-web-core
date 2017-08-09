@@ -1,3 +1,4 @@
+<!DOCTYPE html>
 <html>
 	<head>
 ${{
@@ -18,6 +19,7 @@ if (environment("mobile") == true)
 }}
 		<meta name="viewport" content="user-scalable=no, initial-scale=1, maximum-scale=1, minimum-scale=1, width=device-width">
 		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+		<meta http-equiv="X-UA-Compatible" content="IE=Edge">
 		<script src="${javascript}?version=${environment('version')}"></script>
 		<link rel="stylesheet" type="text/css" href="${css}?version=${environment('version')}">
 		<title>${title}</title>
