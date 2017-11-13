@@ -95,7 +95,7 @@ resolveResources = method
 	boolean root ?= false
 
 	result ?= structure()
-
+	
 	for (key : keys(resources))
 	
 		childPath = when(bundleContext/path == null, key, bundleContext/path + "/" + key)
@@ -223,6 +223,11 @@ resolveResources = method
 							scriptName = replace("/", ".", replace("\.(gcss|glue)", "", scriptName))
 							script = function(scriptName)
 							
+							# it may have just been downloaded, try again if we are in development mode
+							if (script == null && environment("development") == true)
+								repository()/refresh()
+								script = function(scriptName)
+								
 							if (script == null)
 								throw("Could not find script: " + scriptName)
 								

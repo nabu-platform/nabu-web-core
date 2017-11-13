@@ -19,6 +19,8 @@ switch (environment("mobile"))
 # the files that exist in almost every project we create
 files = series("application.js", "routes.js", "swagger.js", "widgets.js", environmentSpecific)
 
+directoryOrder = lambda(name, when(name ~ "^mixins/.*", -1, 0))
+
 for (directory : directories)
 	# load the fixed files that we almost always have
 	for (file : files)
@@ -26,8 +28,12 @@ for (directory : directories)
 			string fileContent = template(read(directory + "/" + file))
 			echo("\n", fileContent)
 	
+	list = file.list(directory, fileRegex: ".*\.js", recursive: true)
+	
+	list = sort(lambda(a, b, directoryOrder(a) - directoryOrder(b)), list)
+	
 	# add all the other files in the directory
-	for (file : file.list(directory, fileRegex: ".*\.js", recursive: true))
+	for (file : list)
 		if (file !? files)
 			string fileContent = template(read(directory + "/" + file))
 			echo("\n", fileContent)

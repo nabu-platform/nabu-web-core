@@ -15,6 +15,6 @@ for (directory : directories)
 	// load all the artifacts
 	for (file : file.list(directory, fileRegex: ".*\.(css|gcss)", recursive: true))
 		if (file ~ ".*\.css")
-			echo("\n", template(read(directory + "/ "+ file)))
+			echo("\n", template(read(directory + "/" + file)))
 		else
 			eval(template(read(directory + "/" + file)), scope())
