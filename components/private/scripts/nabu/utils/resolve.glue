@@ -25,6 +25,10 @@ sequence
 	string [] includes ?= series()
 	string [] excludes ?= series()
 	
+	# hooks to inject stuff before or after
+	before ?= structure()
+	after ?= structure()
+	
 	# whether to inject everything on the root of the target
 	boolean root ?= false
 	
@@ -66,6 +70,10 @@ log = lambda(x, when(debug, console(x)))
 
 javascriptCompressor = function("nabu.web.compressor.Services.compressJavascript")
 
+# could provide full objects with the filename and content
+# can then perhaps do more interesting compilation of sass
+concatenated = ""
+
 resolveResources = method
 	# the bundle context we are working with, this contains:
 	# namespace
@@ -76,6 +84,9 @@ resolveResources = method
 	# excludes: the excludes that were registered
 	# endpoint: the endpoint of the bundle itself (to resolve relative urls)
 	bundleContext ?= null
+	
+	# used for string concatenation of the result
+	concatenated ?= null
 	
 	# the resources we are working with
 	resources ?= null
@@ -101,6 +112,23 @@ resolveResources = method
 		childPath = when(bundleContext/path == null, key, bundleContext/path + "/" + key)
 		childTarget = bundleContext/target + "/" + key
 		
+		# inject before
+		if (bundleContext/before[/childPath] != null)
+			resolveResult = resolveResources(
+				bundleContext: bundleContext,
+				resources: bundleContext/before[/childPath],
+				resolved: resolved,
+				result: result)
+		
+			# feedback any changes to the resulting scope
+			result = resolveResult/result
+			
+			# feedback any newly resolved items
+			resolved = merge(resolved, resolveResult/newlyResolved)
+			
+			# feedback concatenated
+			concatenated = resolveResult/concatenated
+
 		# check that it passes the whitelist
 		continue = size(bundleContext/includes) == 0 || childPath ? bundleContext/includes || true ? (childPath ~ (bundleContext/includes + "/.*"))
 		
@@ -119,11 +147,14 @@ resolveResources = method
 						resolved: resolved,
 						result: result)
 					
-					# feedback any changes to the resulting scope
-					result = resolveResult/result
-					
-					# feedback any newly resolved items
-					resolved = merge(resolved, resolveResult/newlyResolved)
+				# feedback any changes to the resulting scope
+				result = resolveResult/result
+				
+				# feedback any newly resolved items
+				resolved = merge(resolved, resolveResult/newlyResolved)
+				
+				# feedback concatenated
+				concatenated = resolveResult/concatenated
 			
 			# if we have an actual resource, not a container, let's do something
 			if (resource/url != null)
@@ -205,7 +236,9 @@ resolveResources = method
 								name: referenced/name,
 								target: when(root, bundleContext/target, replace("\.json$", "", childTarget)),
 								includes: resource/includes,
-								excludes: resource/excludes, 
+								excludes: resource/excludes,
+								before: resource/before,
+								after: resource/after,
 								endpoint: childResolved/url),
 							resources: referenced/resources,
 							resolved: resolved,
@@ -239,6 +272,8 @@ resolveResources = method
 								echo(template(replacer(read(childResolved/target)), result))
 							else
 								echo(replacer(read(childResolved/target)))
+						else if (childResolved/target ~ ".*\.sass")
+							concatenated = concatenated + template(read(childResolved/target), result)
 						else
 							if (resource/template == null || resource/template == true)
 								try
@@ -260,13 +295,34 @@ resolveResources = method
 					resources: resource,
 					resolved: resolved,
 					root: root,
-					result: result)
+					result: result,
+					concatenated: concatenated)
 					
 				# feedback any changes to the resulting scope
 				result = resolveResult/result
 				
 				# feedback any newly resolved items
 				resolved = merge(resolved, resolveResult/newlyResolved)
+				
+				# feedback concatenated
+				concatenated = resolveResult/concatenated
+		
+		# inject after
+		if (bundleContext/after[/childPath] != null)
+			resolveResult = resolveResources(
+				bundleContext: bundleContext,
+				resources: bundleContext/after[/childPath],
+				resolved: resolved,
+				result: result)
+		
+			# feedback any changes to the resulting scope
+			result = resolveResult/result
+			
+			# feedback any newly resolved items
+			resolved = merge(resolved, resolveResult/newlyResolved)
+			
+			# feedback concatenated
+			concatenated = resolveResult/concatenated
 		
 resolveResult = resolveResources(
 	bundleContext: structure(
@@ -275,10 +331,15 @@ resolveResult = resolveResources(
 		target: target,
 		includes: includes,
 		excludes: excludes,
-		endpoint: bundlePath),
+		endpoint: bundlePath,
+		before: before,
+		after: after),
 	resources: json/resources,
 	root: root,
-	result: result)
+	result: result,
+	concatenated: concatenated)
 	
 # feedback any changes to the resulting scope
 result = resolveResult/result
+
+concatenated = resolveResult/concatenated

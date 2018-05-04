@@ -11,10 +11,18 @@ inject(nabu.utils.resolve(target: target, bundlePath: bundlePath, regex: ".*\.gl
 // load any css and gcss files
 inject(nabu.utils.resolve(target: target, bundlePath: bundlePath, regex: ".*\.(css|gcss)")/result)
 
+// load sass files
+sass = nabu.utils.resolve(target: target, bundlePath: bundlePath, regex: ".*\.sass")/concatenated
+
 for (directory : directories)
 	// load all the artifacts
-	for (file : file.list(directory, fileRegex: ".*\.(css|gcss)", recursive: true))
-		if (file ~ ".*\.css")
+	for (file : file.list(directory, fileRegex: ".*\.(css|gcss|sass)", recursive: true))
+		if (file ~ ".*\.sass")
+			sass = sass + "\n" + template(read(directory + "/" + file))
+		else if (file ~ ".*\.css")
 			echo("\n", template(read(directory + "/" + file)))
 		else
 			eval(template(read(directory + "/" + file)), scope())
+
+if (size(sass) > 0)
+	echo(sass.compile(sass))
