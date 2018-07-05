@@ -1,7 +1,7 @@
 # input
 sequence
 	target ?= "repository:" + environment("webApplicationId") + ":/private/provided/resources"
-	regex ?= ".*\.(?!css|js|gcss|tpl|glue)[^.]+$"
+	regex ?= ".*\.(?!css|js|gcss|tpl|glue|sass)[^.]+$"
 	boolean force ?= null
 	
 	# whether or not to print the resulting resources
@@ -23,4 +23,5 @@ nabu.utils.resolve(
 	print: print,
 	root: true,
 	bundlePath: bundlePath,
-	json: json)
+	json: json,
+	rerootBundle: true)

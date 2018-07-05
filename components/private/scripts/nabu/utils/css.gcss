@@ -1,28 +1,39 @@
 target ?= null
 bundlePath ?= null
 string [] directories ?= fragmentResources("public/artifacts")
+allowGcss ?= true
+allowSass ?= false
+compileSass ?= true
 
 if (!environment("mobile"))
 	response.header("Content-Type", "text/css")
 
-// load any variable files we might have
-inject(nabu.utils.resolve(target: target, bundlePath: bundlePath, regex: ".*\.glue")/result)
-
-// load any css and gcss files
-inject(nabu.utils.resolve(target: target, bundlePath: bundlePath, regex: ".*\.(css|gcss)")/result)
-
-// load sass files
-sass = nabu.utils.resolve(target: target, bundlePath: bundlePath, regex: ".*\.sass")/concatenated
+if (allowGcss)
+	// load any variable files we might have
+	inject(nabu.utils.resolve(target: target, bundlePath: bundlePath, regex: ".*\.glue")/result)
+	
+	// load any css and gcss files
+	inject(nabu.utils.resolve(target: target, bundlePath: bundlePath, regex: ".*\.(css|gcss)")/result)
+else
+	// still load css
+	inject(nabu.utils.resolve(target: target, bundlePath: bundlePath, regex: ".*\.(css)")/result)
+	
+if (allowSass)
+	// load sass files
+	sass = nabu.utils.resolve(target: target, bundlePath: bundlePath, regex: ".*\.(sass|scss)")/concatenated
 
 for (directory : directories)
 	// load all the artifacts
-	for (file : file.list(directory, fileRegex: ".*\.(css|gcss|sass)", recursive: true))
-		if (file ~ ".*\.sass")
-			sass = sass + "\n" + template(read(directory + "/" + file))
+	for (file : file.list(directory, fileRegex: ".*\.(css|gcss|sass|scss)", recursive: true))
+		if (file ~ ".*\.(sass|scss)")
+			if (allowSass)
+				sass = sass + "\n" + template(read(directory + "/" + file))
 		else if (file ~ ".*\.css")
 			echo("\n", template(read(directory + "/" + file)))
 		else
-			eval(template(read(directory + "/" + file)), scope())
+			if (allowGcss)
+				eval(template(read(directory + "/" + file)), scope())
 
-if (size(sass) > 0)
+if (size(sass) > 0 && compileSass)
+	//console("sass is", sass)
 	echo(sass.compile(sass))

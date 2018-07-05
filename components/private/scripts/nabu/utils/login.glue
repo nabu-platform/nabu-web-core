@@ -1,3 +1,5 @@
+@csrf false
+
 title ?= null
 
 @meta

@@ -34,6 +34,16 @@ sequence
 	
 	# whether to print out debugging information
 	boolean debug ?= false
+	
+	# whether or not we allow gcss to be loaded
+	boolean allowGcss ?= true
+	
+	# whether or not we allow sass to be loaded
+	boolean allowSass ?= true
+	
+	# whether or not the resulting resources from remote bundles should be saved in the hierarchy they are defined in
+	# or alternatively whether they should be redirected to the original root
+	boolean rerootBundle ?= false
 
 # load bundle
 sequence
@@ -111,14 +121,15 @@ resolveResources = method
 	
 		childPath = when(bundleContext/path == null, key, bundleContext/path + "/" + key)
 		childTarget = bundleContext/target + "/" + key
-		
+
 		# inject before
 		if (bundleContext/before[/childPath] != null)
 			resolveResult = resolveResources(
 				bundleContext: bundleContext,
 				resources: bundleContext/before[/childPath],
 				resolved: resolved,
-				result: result)
+				result: result,
+				concatenated: concatenated)
 		
 			# feedback any changes to the resulting scope
 			result = resolveResult/result
@@ -145,7 +156,8 @@ resolveResources = method
 						bundleContext: bundleContext,
 						resources: resource/requires,
 						resolved: resolved,
-						result: result)
+						result: result,
+						concatenated: concatenated)
 					
 				# feedback any changes to the resulting scope
 				result = resolveResult/result
@@ -230,11 +242,20 @@ resolveResources = method
 						# the question is, do you want to resolve them in the location of the original bundle
 						# or in the location of the current bundle
 						# currently we opt for the latter as it makes it more clear who imports what
+						# note that if we don't have hierarchical bundles, we want to restart at the original root for each resolve
+						# this can be important for static resources that need a predictable path regardless of how the imports happen
+						if (rerootBundle)
+							bundleTarget = target
+						else if (root)
+							bundleTarget = bundleContext/target
+						else
+							bundleTarget = replace("\.json$", "", childTarget)
+							
 						resolveResult = resolveResources(
 							bundleContext: structure(
 								namespace: referenced/namespace,
 								name: referenced/name,
-								target: when(root, bundleContext/target, replace("\.json$", "", childTarget)),
+								target: bundleTarget,
 								includes: resource/includes,
 								excludes: resource/excludes,
 								before: resource/before,
@@ -242,38 +263,44 @@ resolveResources = method
 								endpoint: childResolved/url),
 							resources: referenced/resources,
 							resolved: resolved,
-							result: result)
+							result: result,
+							concatenated: concatenated)
 						
 						# feedback any changes to the resulting scope
 						result = resolveResult/result
 						
 						# feedback any newly resolved items
 						resolved = merge(resolved, resolveResult/newlyResolved)
+						
+						# feedback concatenated
+						concatenated = resolveResult/concatenated
 							
 					else if (include && print)
 						if (key ~ ".*\.(gcss|glue)")
-							scriptName = replace(".*?/private/provided/artifacts/", "", childResolved/target)
-							scriptName = replace("/", ".", replace("\.(gcss|glue)", "", scriptName))
-							script = function(scriptName)
-							
-							# it may have just been downloaded, try again if we are in development mode
-							if (script == null && environment("development") == true)
-								repository()/refresh()
+							if (allowGcss)
+								scriptName = replace(".*?/private/provided/artifacts/", "", childResolved/target)
+								scriptName = replace("/", ".", replace("\.(gcss|glue)", "", scriptName))
 								script = function(scriptName)
 								
-							if (script == null)
-								throw("Could not find script: " + scriptName)
-								
-							script = bind(script, result)
-							result = structure(result, script())
+								# it may have just been downloaded, try again if we are in development mode
+								if (script == null && environment("development") == true)
+									repository()/refresh()
+									script = function(scriptName)
+									
+								if (script == null)
+									throw("Could not find script: " + scriptName)
+									
+								script = bind(script, result)
+								result = structure(result, script())
 							
 						else if (childResolved/target ~ ".*\.tpl")
 							if (resource/template == null || resource/template == true)
 								echo(template(replacer(read(childResolved/target)), result))
 							else
 								echo(replacer(read(childResolved/target)))
-						else if (childResolved/target ~ ".*\.sass")
-							concatenated = concatenated + template(read(childResolved/target), result)
+						else if (childResolved/target ~ ".*\.(sass|scss)")
+							if (allowSass)
+								concatenated = concatenated + template(read(childResolved/target), result) +"\n"
 						else
 							if (resource/template == null || resource/template == true)
 								try
@@ -313,7 +340,8 @@ resolveResources = method
 				bundleContext: bundleContext,
 				resources: bundleContext/after[/childPath],
 				resolved: resolved,
-				result: result)
+				result: result,
+				concatenated: concatenated)
 		
 			# feedback any changes to the resulting scope
 			result = resolveResult/result
