@@ -1,0 +1,3 @@
+<structure name="passwordProtect">
+    <field minOccurs="0" name="password" type="java.lang.String"/>
+</structure>

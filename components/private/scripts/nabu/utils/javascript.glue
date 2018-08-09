@@ -17,17 +17,23 @@ switch (environment("mobile"))
 		environmentSpecific = "web.js"
 
 # the files that exist in almost every project we create
-files = series("application.js", "routes.js", "swagger.js", "widgets.js", environmentSpecific)
+files = series("application.js", "routes.js", "swagger.js", "widgets.js")
 
 directoryOrder = lambda(name, when(name ~ "^mixins/.*", -1, 0))
 
+# first find the core files
 for (directory : directories)
 	# load the fixed files that we almost always have
 	for (file : files)
 		if (exists(directory + "/" + file))
 			string fileContent = template(read(directory + "/" + file))
 			echo("\n", fileContent)
-	
+
+# we want to excluse the environmentSpecific from the traditionally loaded as well
+files = merge(files, environmentSpecific)
+
+# then find the other files
+for (directory : directories)
 	list = file.list(directory, fileRegex: ".*\.js", recursive: true)
 	
 	list = sort(lambda(a, b, directoryOrder(a) - directoryOrder(b)), list)
@@ -37,3 +43,11 @@ for (directory : directories)
 		if (file !? files)
 			string fileContent = template(read(directory + "/" + file))
 			echo("\n", fileContent)
+
+# finally, find the environmentspecific file
+# we want the on load function there to be triggered after all the other on loads that might exist
+for (directory : directories)
+	# load the fixed files that we almost always have
+	if (exists(directory + "/" + environmentSpecific))
+		string fileContent = template(read(directory + "/" + environmentSpecific))
+		echo("\n", fileContent)

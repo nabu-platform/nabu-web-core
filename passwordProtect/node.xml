@@ -1,0 +1,1 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?><node artifactManager="be.nabu.eai.module.web.component.WebComponentManager" created="2018-08-01T17:43:11.071+02:00" lastModified="2018-08-01T17:49:35.659+02:00" leaf="true" version="3"><environmentId>hyperion</environmentId><hidden>false</hidden><properties/><references>nabu.web.core.types.passwordProtect</references></node>
