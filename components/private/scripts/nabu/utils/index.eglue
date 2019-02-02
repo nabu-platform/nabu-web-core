@@ -10,7 +10,10 @@ target ?= null
 staticTarget ?= null
 bundlePath ?= null
 [] directories ?= null
+# whether or not to use the body for routing
+boolean body ?= true
 buildTime = date.format('yyyyMMddHHmmssSSS', date: date.date())
+additional ?= ""
 
 if (environment("mobile") == true)
 	echo('		<meta http-equiv="Content-Security-Policy" content="default-src \'self\' data: gap: cdvfile: https://ssl.gstatic.com \'unsafe-eval\' \'unsafe-inline\'; connect-src \'self\' ws: wss: http: https:; style-src \'self\'; media-src *">')
@@ -23,11 +26,13 @@ if (environment("mobile") == true)
 		<meta http-equiv="X-UA-Compatible" content="IE=Edge">
 		<script src="${javascript}?version=${environment('version')}&build=${buildTime}"></script>
 		<link rel="stylesheet" type="text/css" href="${css}?version=${environment('version')}&build=${buildTime}">
+		${additional}
 		<title>${title}</title>
 ${{
 nabu.utils.tpl(target: target, staticTarget: staticTarget, bundlePath: bundlePath, directories: directories)
 }}
 	</head>
 	<body${when(style, " class='n-default'", "")}>
+		${when(!body, "<div id='body'></div>", "")}
 	</body>
 </html>

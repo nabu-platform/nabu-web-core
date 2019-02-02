@@ -121,7 +121,7 @@ resolveResources = method
 	
 		childPath = when(bundleContext/path == null, key, bundleContext/path + "/" + key)
 		childTarget = bundleContext/target + "/" + key
-
+		
 		# inject before
 		if (bundleContext/before[/childPath] != null)
 			resolveResult = resolveResources(
@@ -170,7 +170,7 @@ resolveResources = method
 			
 			# if we have an actual resource, not a container, let's do something
 			if (resource/url != null)
-				log("Resolving " + bundleContext/name + ": " + childPath)		
+				log("Resolving " + bundleContext/name + ": " + childPath + " to " + childTarget)		
 				
 				# only use the resource if it matches the regex or it is a bundle which we have to recurse
 				if (key ~ regex || resource/type == "bundle")
@@ -196,9 +196,9 @@ resolveResources = method
 						# if it's not absolute, make it so
 						if (url !~ "^[\w]+:.*" && bundleContext/endpoint != null)
 							url = replace("/[^/]+$", "", bundleContext/endpoint) + "/" + replace("^[/]+", "", url)
-	
+
 						# resolve parent references
-						url = replace("/[^/]+/../", "/", url)
+						url = replace("/[^/]+/\.\./", "/", url)
 	
 						# if we are in development mode, check the last modified of the target resource
 						lastModified = when(environment("development") == true, modified(url), null)

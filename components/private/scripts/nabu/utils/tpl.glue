@@ -1,20 +1,27 @@
 target ?= null
 staticTarget ?= null
-bundlePath ?= null
+bundlePath ?= "repository:" + environment("webApplicationId") + ":/private/provided/bundle.json"
 [] directories ?= fragmentResources("public/artifacts")
+autoBundle ?= true
 
 # get variables if necessary
 inject(scope(1))
 
 replacer = nabu.utils.lambdas()/templater
 
-# resolve included tpls
-nabu.utils.resolve(target: target, bundlePath: bundlePath, regex: ".*\.tpl")
+bundles = series(bundlePath)
 
-# resolve static resources
-# used to have param: includes: "vendor"
-# not sure why...
-nabu.utils.resolveStatic(target: staticTarget, bundlePath: bundlePath)
+if (autoBundle)
+	bundles = merge(bundles, fragmentResources("public/bundled/auto-bundle.json"))
+
+for (bundle : bundles)
+	# resolve included tpls
+	nabu.utils.resolve(target: target, bundlePath: bundle, regex: ".*\.tpl")
+	
+	# resolve static resources
+	# used to have param: includes: "vendor"
+	# not sure why...
+	nabu.utils.resolveStatic(target: staticTarget, bundlePath: bundle)
 
 for (directory : directories)
 	# resolve the tpls you have in your project

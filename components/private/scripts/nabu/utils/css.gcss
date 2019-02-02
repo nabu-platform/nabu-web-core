@@ -1,26 +1,34 @@
 target ?= null
-bundlePath ?= null
+bundlePath ?= "repository:" + environment("webApplicationId") + ":/private/provided/bundle.json"
 string [] directories ?= fragmentResources("public/artifacts")
 allowGcss ?= true
 allowSass ?= false
 compileSass ?= true
+autoBundle ?= true
 
 if (!environment("mobile"))
 	response.header("Content-Type", "text/css")
 
-if (allowGcss)
-	// load any variable files we might have
-	inject(nabu.utils.resolve(target: target, bundlePath: bundlePath, regex: ".*\.glue")/result)
-	
-	// load any css and gcss files
-	inject(nabu.utils.resolve(target: target, bundlePath: bundlePath, regex: ".*\.(css|gcss)")/result)
-else
-	// still load css
-	inject(nabu.utils.resolve(target: target, bundlePath: bundlePath, regex: ".*\.(css)")/result)
-	
-if (allowSass)
-	// load sass files
-	sass = nabu.utils.resolve(target: target, bundlePath: bundlePath, regex: ".*\.(sass|scss)")/concatenated
+bundles = series(bundlePath)
+
+if (autoBundle)
+	bundles = merge(bundles, fragmentResources("public/bundled/auto-bundle.json"))
+
+sass = ""
+for (bundle : bundles)
+	if (allowGcss)
+		// load any variable files we might have
+		inject(nabu.utils.resolve(target: target, bundlePath: bundle, regex: ".*\.glue")/result)
+		
+		// load any css and gcss files
+		inject(nabu.utils.resolve(target: target, bundlePath: bundle, regex: ".*\.(css|gcss)")/result)
+	else
+		// still load css
+		inject(nabu.utils.resolve(target: target, bundlePath: bundle, regex: ".*\.(css)")/result)
+		
+	if (allowSass)
+		// load sass files
+		sass = sass + "\n" + nabu.utils.resolve(target: target, bundlePath: bundle, regex: ".*\.(sass|scss)")/concatenated
 
 for (directory : directories)
 	// load all the artifacts
@@ -34,6 +42,6 @@ for (directory : directories)
 			if (allowGcss)
 				eval(template(read(directory + "/" + file)), scope())
 
-if (size(sass) > 0 && compileSass)
+if (size(trim(sass)) > 0 && compileSass)
 	//console("sass is", sass)
 	echo(sass.compile(sass))

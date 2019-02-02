@@ -1,9 +1,13 @@
 configuration = application.configuration("nabu.web.core.types.passwordProtect")
 
-if (configuration != null && configuration/password != null)
+@header X-Request-Type
+requestType ?= null
+
+if (configuration != null && configuration/password != null && requestType != "ssr")
 	@cookie password-protection
 	password ?= null
 	
 	if (password != hash("MD5", configuration/password))
-		response.header("Original-Target", request.target())
-		response.target("password-protect")
+		if (request.header("Original-Target") == null)
+			response.header("Original-Target", request.target())
+		response.target(server.root() + "password-protect")
