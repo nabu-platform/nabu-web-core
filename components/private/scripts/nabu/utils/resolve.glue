@@ -199,14 +199,17 @@ resolveResources = method
 
 						# resolve parent references
 						url = replace("/[^/]+/\.\./", "/", url)
-	
+					
 						# if we are in development mode, check the last modified of the target resource
 						lastModified = when(environment("development") == true, modified(url), null)
-						
-						if (force || !exists(childTarget) || when(lastModified == null, false, lastModified > modified(childTarget)))
+						boolean noresolve = context.get("noresolve")
+						if (force || !exists(childTarget) || when(lastModified == null || noresolve, false, lastModified > modified(childTarget)))
 							log("\tReading from: " + url)
 							# get the content
-							content = file.read(url)
+							try
+								content = file.read(url)
+								catch
+									throw("Could not read: " + url, $exception)
 	
 							log("\tWriting to: " + childTarget)
 							# write the content to the target

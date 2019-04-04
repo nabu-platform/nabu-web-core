@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<restInterface>
+    <method>GET</method>
+    <path>/manifest.json</path>
+    <preferredResponseType>JSON</preferredResponseType>
+    <output>nabu.web.core.manifest</output>
+    <configurationType>nabu.web.core.manifest</configurationType>
+    <lenient>false</lenient>
+    <webApplicationId>true</webApplicationId>
+    <language>false</language>
+    <allowFormBinding>false</allowFormBinding>
+    <caseInsensitive>false</caseInsensitive>
+    <cache>false</cache>
+    <allowCookiesWithoutReferer>false</allowCookiesWithoutReferer>
+    <allowCookiesWithExternalReferer>false</allowCookiesWithExternalReferer>
+    <request>false</request>
+    <allowHeaderAsQueryParameter>false</allowHeaderAsQueryParameter>
+    <useServerCache>false</useServerCache>
+    <source>false</source>
+    <allowRaw>true</allowRaw>
+</restInterface>

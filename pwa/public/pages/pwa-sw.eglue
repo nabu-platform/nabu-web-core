@@ -1,0 +1,57 @@
+${{
+response.header("Content-Type", "application/javascript")
+}}
+
+var VERSION = "v1";
+var CACHE_NAME = 'cache-' + VERSION;
+
+var urlsToCache = [];
+
+self.addEventListener('install', function(event) {
+	console.log("Installing nabu PWA service worker", VERSION);
+	if (urlsToCache.length) {
+		event.waitUntil(
+			caches.open(CACHE_NAME).then(function(cache) {
+				return cache.addAll(urlsToCache);
+			})
+		);
+	}
+});
+
+self.addEventListener('fetch', function(event) {
+	// we first try an actual fetch from the server (hoping to be online)
+	// otherwise, we look at our cache
+	// if we can't it in the cache, we return a 401, pretending you don't have access to it
+	event.respondWith(
+		fetch(event.request).then(
+			function(response) {
+				// Check if we received a valid response
+				if (!response || response.status !== 200 || response.type !== 'basic') {
+					return response;
+				}
+				// only cache get requests
+				if (event.request.method == "GET") {				
+					// IMPORTANT: Clone the response. A response is a stream
+					// and because we want the browser to consume the response
+					// as well as the cache consuming the response, we need
+					// to clone it so we have two streams.
+					var responseToCache = response.clone();
+	
+					caches.open(CACHE_NAME).then(function(cache) {
+						cache.put(event.request, responseToCache);
+					});
+				}
+				return response;
+			}
+		).catch(function(error) {
+			return caches.match(event.request).then(function(response) {
+				if (response) {
+					return response;	
+				}
+				else {
+					return new Response(null, {status: 401});
+				}
+			});
+		})
+	);
+});

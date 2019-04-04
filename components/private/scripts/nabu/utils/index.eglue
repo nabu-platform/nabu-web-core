@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html>
+<html prefix="og: http://ogp.me/ns#">
 	<head>
 ${{
 title ?= "Anonymous"
@@ -14,6 +14,12 @@ bundlePath ?= null
 boolean body ?= true
 buildTime = date.format('yyyyMMddHHmmssSSS', date: date.date())
 additional ?= ""
+# interesting values: no-referrer, no-referrer-when-downgrade, same-origin, origin, strict-origin, origin-when-crossorigin, strict-origin-when-crossorigin, unsafe-url
+referrer ?= "origin"
+noresolve ?= false
+
+if (noresolve)
+	context.set("noresolve", noresolve)
 
 if (environment("mobile") == true)
 	echo('		<meta http-equiv="Content-Security-Policy" content="default-src \'self\' data: gap: cdvfile: https://ssl.gstatic.com \'unsafe-eval\' \'unsafe-inline\'; connect-src \'self\' ws: wss: http: https:; style-src \'self\'; media-src *">')
@@ -24,11 +30,15 @@ if (environment("mobile") == true)
 		<meta name="viewport" content="user-scalable=no, initial-scale=1, maximum-scale=1, minimum-scale=1, width=device-width">
 		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 		<meta http-equiv="X-UA-Compatible" content="IE=Edge">
+		<meta name="referrer" content="${referrer}">
 		<script src="${javascript}?version=${environment('version')}&build=${buildTime}"></script>
 		<link rel="stylesheet" type="text/css" href="${css}?version=${environment('version')}&build=${buildTime}">
 		${additional}
 		<title>${title}</title>
 ${{
+if (nabu.web.application.Services.hasFragment(environment("webApplicationId"), "nabu.web.core.rest.manifest")/has)
+	echo("<link rel='manifest' href='" + server.root() + "manifest.json'>")
+	
 nabu.utils.tpl(target: target, staticTarget: staticTarget, bundlePath: bundlePath, directories: directories)
 }}
 	</head>

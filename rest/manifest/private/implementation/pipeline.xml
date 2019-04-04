@@ -1,0 +1,7 @@
+<structure interface="$self:api" name="pipeline">
+    <structure name="input"/>
+    <structure name="output"/>
+    <structure definition="nabu.web.application.types.WebApplicationInformation" minOccurs="0" name="information"/>
+    <structure definition="nabu.utils.types.NodeDescription" minOccurs="0" name="pageConfigurationNode"/>
+    <structure definition="nabu.web.page.core.types.configuration" name="pageConfiguration"/>
+</structure>
