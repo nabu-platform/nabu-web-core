@@ -7,7 +7,7 @@
         <field name="sizes" type="java.lang.String"/>
     </structure>
     <field alias="start_url" minOccurs="0" name="startUrl" type="java.lang.String"/>
-    <field comment="fullscreen, standalone, or minimal-ui" name="display" type="java.lang.String"/>
+    <field comment="fullscreen, standalone, or minimal-ui" minOccurs="0" name="display" type="java.lang.String"/>
     <field minOccurs="0" name="scope" type="java.lang.String"/>
     <field alias="background_color" minOccurs="0" name="backgroundColor" type="java.lang.String"/>
     <field alias="theme_color" minOccurs="0" name="themeColor" type="java.lang.String"/>

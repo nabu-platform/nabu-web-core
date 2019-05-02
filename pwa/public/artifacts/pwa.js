@@ -9,17 +9,47 @@ window.addEventListener("beforeinstallprompt", function(event) {
 	application.installPrompt = event;
 });
 
+window.addEventListener("offline", function(e) {
+	if (application && application.services && application.services.pwa) {
+		application.services.pwa.online = false;
+	}
+}, false);
+
+window.addEventListener("online", function(e) {
+	if (application && application.services && application.services.pwa) {
+		application.services.pwa.online = true;
+	}
+}, false);
+
+window.addEventListener("fetchfailed", function(e) {
+	if (application && application.services && application.services.pwa) {
+		application.services.pwa.online = false;
+	}
+}, false);
+
+window.addEventListener("fetchsucceeded", function(e) {
+	if (application && application.services && application.services.pwa) {
+		application.services.pwa.online = true;
+	}
+}, false);
+
 nabu.services.VueService(Vue.extend({
 	data: function() {
 		return {
-			installable: false
+			installable: false,
+			online: true
 		}
 	},
 	created: function() {
-		this.scanForPrompt();	
+		this.scanForPrompt();
+		this.online = navigator.onLine;
 	},
 	methods: {
 		scanForPrompt: function() {
+			var value = this.$services.cookies.get("pwa-ignore-install");
+			if (value == "true") {
+				return;
+			}
 			if (application.installPrompt != null) {
 				this.installable = true;
 			}
@@ -50,6 +80,13 @@ nabu.services.VueService(Vue.extend({
 				promise.reject();
 			}
 			return promise;
+		},
+		ignoreInstall: function(days) {
+			// by default we ignore for +- 3 months
+			if (!days) {
+				days = 90;
+			}
+			this.$services.cookies.set("pwa-ignore-install", "true", parseInt(days));
 		}
 	}
 }), { name: "nabu.services.web.Pwa" });

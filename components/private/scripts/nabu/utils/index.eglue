@@ -11,7 +11,7 @@ staticTarget ?= null
 bundlePath ?= null
 [] directories ?= null
 # whether or not to use the body for routing
-boolean body ?= true
+boolean body ?= false
 buildTime = date.format('yyyyMMddHHmmssSSS', date: date.date())
 additional ?= ""
 # interesting values: no-referrer, no-referrer-when-downgrade, same-origin, origin, strict-origin, origin-when-crossorigin, strict-origin-when-crossorigin, unsafe-url
@@ -38,6 +38,8 @@ if (environment("mobile") == true)
 ${{
 if (nabu.web.application.Services.hasFragment(environment("webApplicationId"), "nabu.web.core.rest.manifest")/has)
 	echo("<link rel='manifest' href='" + server.root() + "manifest.json'>")
+	echo("<meta name='apple-mobile-web-app-capable' content='yes'>")
+	echo("<meta name='mobile-web-app-capable' content='yes'>")
 	
 nabu.utils.tpl(target: target, staticTarget: staticTarget, bundlePath: bundlePath, directories: directories)
 }}

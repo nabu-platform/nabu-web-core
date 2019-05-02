@@ -68,7 +68,7 @@
 				mask="false"
 				optional="false"
 				fixedValue="true">
-			<from>fullscreen</from>
+			<from>standalone</from>
 			<to>output/content/display</to>
 		</steps>
 	</steps>
