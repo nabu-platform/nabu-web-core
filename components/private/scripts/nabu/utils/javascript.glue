@@ -4,8 +4,8 @@ bundlePath ?= "repository:" + environment("webApplicationId") + ":/private/provi
 autoBundle ?= true
 #"repository:" + environment("webApplicationId") + ":/public/artifacts"
 
-if (environment("mobile") != true)
-	response.header("Content-Type", "application/javascript")
+#if (environment("mobile") != true)
+response.header("Content-Type", "application/javascript")
 
 bundles = series(bundlePath)
 
@@ -36,8 +36,11 @@ for (directory : directories)
 			string fileContent = template(read(directory + "/" + file))
 			echo("\n", fileContent)
 
-# we want to excluse the environmentSpecific from the traditionally loaded as well
+# we want to exclude the environmentSpecific from the traditionally loaded as well
 files = merge(files, environmentSpecific)
+
+# add the environment specific that we are not loading to the blacklist
+files = merge(files, when(environment("mobile") == true, "web.js", "mobile.js"))
 
 # then find the other files
 for (directory : directories)

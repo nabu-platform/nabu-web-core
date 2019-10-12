@@ -6,8 +6,8 @@ allowSass ?= false
 compileSass ?= true
 autoBundle ?= true
 
-if (!environment("mobile"))
-	response.header("Content-Type", "text/css")
+#if (!environment("mobile"))
+response.header("Content-Type", "text/css")
 
 bundles = series(bundlePath)
 
