@@ -31,8 +31,8 @@ if (environment("mobile") == true)
 		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 		<meta http-equiv="X-UA-Compatible" content="IE=Edge">
 		<meta name="referrer" content="${referrer}">
-		<script src="${javascript}?version=${environment('version')}&build=${buildTime}"></script>
-		<link rel="stylesheet" type="text/css" href="${css}?version=${environment('version')}&build=${buildTime}">
+		<script src="${javascript}?version=${environment('version')}&build=${buildTime}${when(language() == null, '', '&language=' + language())}"></script>
+		<link rel="stylesheet" type="text/css" href="${css}?version=${environment('version')}&build=${buildTime}${when(language() == null, '', '&language=' + language())}">
 		${additional}
 		<title>${title}</title>
 ${{

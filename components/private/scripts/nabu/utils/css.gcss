@@ -5,6 +5,7 @@ allowGcss ?= true
 allowSass ?= false
 compileSass ?= true
 autoBundle ?= true
+debug ?= false
 
 #if (!environment("mobile"))
 response.header("Content-Type", "text/css")
@@ -18,17 +19,17 @@ sass = ""
 for (bundle : bundles)
 	if (allowGcss)
 		// load any variable files we might have
-		inject(nabu.utils.resolve(target: target, bundlePath: bundle, regex: ".*\.glue")/result)
+		inject(nabu.utils.resolve(target: target, bundlePath: bundle, regex: ".*\.glue", debug:debug)/result)
 		
 		// load any css and gcss files
-		inject(nabu.utils.resolve(target: target, bundlePath: bundle, regex: ".*\.(css|gcss)")/result)
+		inject(nabu.utils.resolve(target: target, bundlePath: bundle, regex: ".*\.(css|gcss)", debug:debug)/result)
 	else
 		// still load css
-		inject(nabu.utils.resolve(target: target, bundlePath: bundle, regex: ".*\.(css)")/result)
+		inject(nabu.utils.resolve(target: target, bundlePath: bundle, regex: ".*\.(css)", debug:debug)/result)
 		
 	if (allowSass)
 		// load sass files
-		sass = sass + "\n" + nabu.utils.resolve(target: target, bundlePath: bundle, regex: ".*\.(sass|scss)")/concatenated
+		sass = sass + "\n" + nabu.utils.resolve(target: target, bundlePath: bundle, regex: ".*\.(sass|scss)", debug:debug)/concatenated
 
 for (directory : directories)
 	// load all the artifacts

@@ -1,4 +1,4 @@
-<structure name="passwordProtect">
+<structure comment="Configure a password to enable access to your web application" name="passwordProtect">
     <field minOccurs="0" name="password" type="java.lang.String"/>
     <field minOccurs="0" name="secureOnly" type="java.lang.Boolean"/>
 </structure>

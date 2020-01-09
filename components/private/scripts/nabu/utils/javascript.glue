@@ -2,6 +2,7 @@ target ?= null
 bundlePath ?= "repository:" + environment("webApplicationId") + ":/private/provided/bundle.json"
 [] directories ?= fragmentResources("public/artifacts")
 autoBundle ?= true
+debug ?= false
 #"repository:" + environment("webApplicationId") + ":/public/artifacts"
 
 #if (environment("mobile") != true)
@@ -14,7 +15,7 @@ if (autoBundle)
 
 for (bundle : bundles)
 	# resolve the javascript files
-	nabu.utils.resolve(target: target, bundlePath: bundle, regex: ".*\.js")
+	nabu.utils.resolve(target: target, bundlePath: bundle, regex: ".*\.js", debug:debug)
 
 # depending on the environment, check for the existence of a file and load it
 switch (environment("mobile"))
