@@ -4,10 +4,30 @@ configuration = application.configuration("nabu.web.core.types.passwordProtect")
 requestType ?= null
 
 if (configuration != null && configuration/password != null && requestType != "ssr")
-	@cookie password-protection
-	password ?= null
-	
-	if (password != hash("MD5", configuration/password))
-		if (request.header("Original-Target") == null)
-			response.header("Original-Target", request.target())
-		response.target(server.root() + "password-protect")
+	allowed = false
+	# check if the path we are accessing is whitelisted
+	if (size(configuration/whiteListRegexes) > 0)
+		for (regex : configuration/whiteListRegexes)
+			if (request.path() ~ regex)
+				allowed = true
+
+	# check if the referer is whitelisted				
+	if (!allowed)
+		referer = request.header("Referer")/value
+		allowed = referer != null && configuration/whiteListRefererRegexes != null && true ? (referer ~ configuration/whiteListRefererRegexes)
+		response.header("Password-Whitelist", "true")
+		
+	if (!allowed)
+		@cookie password-protection
+		@single
+		password ?= null
+		
+		algorithm = configuration/algorithm
+		if (algorithm == null)
+			algorithm = "SHA256"
+		
+		salt = nabu.utils.Server.getServerGroup()/group
+		if (!nabu.utils.Security.validateHash(salt + "::" + configuration/password, password, algorithm)/valid)
+			if (request.header("Original-Target") == null)
+				response.header("Original-Target", request.target())
+			response.target(server.root() + "password-protect")

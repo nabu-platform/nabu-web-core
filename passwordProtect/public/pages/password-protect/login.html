@@ -4,10 +4,32 @@
 			${file.read("repository:nabu.web.core.components:/private/theme/standalone-page.css")}
 		</style>
 		<title>Nabu - Unlock Website</title>
-		<meta charset="UTF-8"> 
+		<meta charset="UTF-8">
+		<script type="application/javascript">
+			function toggleButton() {
+				var throttled = "${when(throttled != null, first(throttled/content/headers[name = 'Retry-After']/value), 0)}";
+				if (throttled && throttled.match(/^[0-9]+$/)) {
+					var element = document.querySelector("button.submit");
+					element.disabled = true;
+					var counter = parseInt(throttled) + 1;
+					var countdown = function() {
+						counter--;
+						if (counter > 0) {
+							element.innerHTML = "Unlock (" + counter + ")";
+							setTimeout(countdown, 1000);
+						}
+						else {
+							element.innerHTML = "Unlock";
+							element.disabled = false;
+						}
+					}
+					countdown();
+				}
+			}
+		</script>
 	</head>
 
-	<body>
+	<body onload="toggleButton()">
 	
 		<main>
 			

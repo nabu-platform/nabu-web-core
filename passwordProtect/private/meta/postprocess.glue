@@ -1,0 +1,20 @@
+request = request.entity()/request
+# if we were let through with a referer whitelist, let's set the password in a cookie so you can return without the referer
+if (request != null)
+	whitelist = be.nabu.utils.mime.impl.MimeUtils.getHeader("Password-Whitelist", request/content/headers)/value
+	if (whitelist = "true")
+		configuration = application.configuration("nabu.web.core.types.passwordProtect")
+		# let's double check that the referer is correct, otherwise you can cheat by simply sending that header in
+		referer = be.nabu.utils.mime.impl.MimeUtils.getHeader("Referer", request/content/headers)/value
+		allowed = referer != null && configuration/whiteListRefererRegexes != null && true ? (referer ~ configuration/whiteListRefererRegexes)
+	
+		if (allowed && configuration/password != null)
+			# shameless copy paste from preprocessor!
+			algorithm = configuration/algorithm
+			if (algorithm == null)
+				algorithm = "SHA256"
+	
+			# a "stable" salt that should still differ per server environment but remain the same within clusters and across web applications (in case a password protect is shared)
+			salt = nabu.utils.Server.getServerGroup()/group
+			response.cookie("password-protection", nabu.utils.Security.hash(salt + "::" + configuration/password, algorithm)/hash, date() + "1 year", path: cookiePath(), httpOnly: true,
+				secure: when(configuration/secureOnly == null, environment("secure"), configuration/secureOnly))

@@ -51,7 +51,10 @@ sequence
 	if (!exists(bundlePath))
 		throw("Could not find bundle.json at: " + bundlePath)
 	
-	json ?= json.objectify(read(bundlePath), raw: true)
+	try
+		json ?= json.objectify(read(bundlePath), raw: true)
+		catch
+			throw("Could not parse bundle: " + bundlePath, $exception)
 
 # lambda to resolve required dependencies
 resolveRequires = lambda
@@ -113,6 +116,11 @@ resolveResources = method
 	# the newly resolved items, these are sent back to be appended to the ever growing list of items
 	newlyResolved ?= series()
 	
+	# resources that are already loaded, we only load everything once
+	loaded ?= series()
+	
+	newlyLoaded = series()
+	
 	boolean root ?= false
 
 	result ?= structure()
@@ -129,13 +137,18 @@ resolveResources = method
 				resources: bundleContext/before[/childPath],
 				resolved: resolved,
 				result: result,
-				concatenated: concatenated)
+				concatenated: concatenated,
+				loaded: loaded)
 		
 			# feedback any changes to the resulting scope
 			result = resolveResult/result
 			
 			# feedback any newly resolved items
 			resolved = merge(resolved, resolveResult/newlyResolved)
+			
+			newlyResolved = merge(newlyResolved, resolveResult/newlyResolved)
+			newlyLoaded = merge(newlyLoaded, resolveResult/newlyLoaded)
+			loaded = merge(loaded, resolveResult/newlyLoaded)
 			
 			# feedback concatenated
 			concatenated = resolveResult/concatenated
@@ -153,17 +166,22 @@ resolveResources = method
 			
 			if (resource/requires != null)
 				resolveResult = resolveResources(
-						bundleContext: bundleContext,
-						resources: resource/requires,
-						resolved: resolved,
-						result: result,
-						concatenated: concatenated)
+					bundleContext: bundleContext,
+					resources: resource/requires,
+					resolved: resolved,
+					result: result,
+					concatenated: concatenated,
+					loaded: loaded)
 					
 				# feedback any changes to the resulting scope
 				result = resolveResult/result
 				
 				# feedback any newly resolved items
 				resolved = merge(resolved, resolveResult/newlyResolved)
+				
+				# and to top script
+				newlyResolved = merge(newlyResolved, resolveResult/newlyResolved)
+				loaded = merge(loaded, resolveResult/loaded)
 				
 				# feedback concatenated
 				concatenated = resolveResult/concatenated
@@ -184,22 +202,22 @@ resolveResources = method
 					# whether or not to inject the content, only inject it the first time (so if it has not yet been resolved)
 					include = childResolved == null
 					
+					# always calculate the url so we can add it to the resolved
+					# this url will serve (for bundles for example) as a point for relative paths to start from
+					url = resource/url
+					# if it's not absolute, make it so
+					if (url !~ "^[\w]+:.*" && bundleContext/endpoint != null)
+						url = replace("/[^/]+$", "", bundleContext/endpoint) + "/" + replace("^[/]+", "", url)
+
+					# resolve parent references
+					url = replace("/[^/]+/\.\./", "/", url)
+					
 					# if we already resolved it, skip
 					if (childResolved != null)
 						log("\tSkipping because previous resolved: " + childResolved/target)
 						
 					# only update it if we force it or it doesn't exist yet
 					else
-						# always calculate the url so we can add it to the resolved
-						# this url will serve (for bundles for example) as a point for relative paths to start from
-						url = resource/url
-						# if it's not absolute, make it so
-						if (url !~ "^[\w]+:.*" && bundleContext/endpoint != null)
-							url = replace("/[^/]+$", "", bundleContext/endpoint) + "/" + replace("^[/]+", "", url)
-
-						# resolve parent references
-						url = replace("/[^/]+/\.\./", "/", url)
-					
 						# if we are in development mode, check the last modified of the target resource
 						lastModified = when(environment("development") == true, modified(url), null)
 						boolean noresolve = context.get("noresolve")
@@ -238,8 +256,12 @@ resolveResources = method
 						if (content == null)
 							content = read(childResolved/target)
 							
-						# parse the content
-						referenced = json.objectify(content, raw: true)
+						try
+							# parse the content
+							referenced = json.objectify(content, raw: true)
+							catch
+								throw("Could not parse bundle: " + url + " / " + childResolved/target, $exception)
+								
 						
 						# if you have items that are from an already imported bundle but not imported themselves (e.g. different scope or excluded/not included)
 						# the question is, do you want to resolve them in the location of the original bundle
@@ -267,7 +289,8 @@ resolveResources = method
 							resources: referenced/resources,
 							resolved: resolved,
 							result: result,
-							concatenated: concatenated)
+							concatenated: concatenated,
+							loaded: loaded)
 						
 						# feedback any changes to the resulting scope
 						result = resolveResult/result
@@ -275,10 +298,19 @@ resolveResources = method
 						# feedback any newly resolved items
 						resolved = merge(resolved, resolveResult/newlyResolved)
 						
+						# feed it back to the above script as well
+						newlyResolved = merge(newlyResolved, resolveResult/newlyResolved)
+						newlyLoaded = merge(newlyLoaded, resolveResult/newlyLoaded)
+						loaded = merge(loaded, resolveResult/newlyLoaded)
+						
 						# feedback concatenated
 						concatenated = resolveResult/concatenated
 							
-					else if (include && print)
+					else if (include && print && first(loaded[url = /url]) = null)
+						newlyLoaded = merge(newlyLoaded, structure(url: url))
+						
+						if (url~ ".*d3.v5.*")
+							console("could not find: " + url, loaded/url)
 						if (key ~ ".*\.(gcss|glue)")
 							if (allowGcss)
 								scriptName = replace(".*?/private/provided/artifacts/", "", childResolved/target)
@@ -326,13 +358,19 @@ resolveResources = method
 					resolved: resolved,
 					root: root,
 					result: result,
-					concatenated: concatenated)
+					concatenated: concatenated,
+					loaded: loaded)
 					
 				# feedback any changes to the resulting scope
 				result = resolveResult/result
 				
 				# feedback any newly resolved items
 				resolved = merge(resolved, resolveResult/newlyResolved)
+				
+				# also to above script
+				newlyResolved = merge(newlyResolved, resolveResult/newlyResolved)
+				newlyLoaded = merge(newlyLoaded, resolveResult/newlyLoaded)
+				loaded = merge(loaded, resolveResult/newlyLoaded)
 				
 				# feedback concatenated
 				concatenated = resolveResult/concatenated
@@ -344,13 +382,19 @@ resolveResources = method
 				resources: bundleContext/after[/childPath],
 				resolved: resolved,
 				result: result,
-				concatenated: concatenated)
+				concatenated: concatenated,
+				loaded: loaded)
 		
 			# feedback any changes to the resulting scope
 			result = resolveResult/result
 			
 			# feedback any newly resolved items
 			resolved = merge(resolved, resolveResult/newlyResolved)
+			
+			# and to top script
+			newlyResolved = merge(newlyResolved, resolveResult/newlyResolved)
+			newlyLoaded = merge(newlyLoaded, resolveResult/newlyLoaded)
+			loaded = merge(loaded, resolveResult/newlyLoaded)
 			
 			# feedback concatenated
 			concatenated = resolveResult/concatenated

@@ -1,0 +1,73 @@
+captureEcho()
+inject(nabu.utils.css(allowGcss: false, allowSass: true))
+content = releaseEcho()
+
+result = structure()
+hits = string.find("(?s)(?:\\}|\\A|,)[\\s]*([^{}]*\\{[^}]*extends[\\s]*:[\\s]*([^;}]+))", content)
+for (hit : hits)
+	extension = find("(?s).*?extends[\\s]*:[\\s]*(.*)", hit)[0]
+	extension = replace("('|\")", "", extension)
+	extension = replace(";", "", extension)
+	original = trim(replace("(?s)[\\s]*([^{]*)\\{[^}]*extends[\\s]*:[\\s]*([^;}]+)", "$1", hit))
+	original = replace("([~>+])[\\s]+", "$1", original)
+	
+	# standardize the original so we can do lookups
+	original = replace("[\\s]+", " ", original)
+	
+	#console("the original", original)
+	result = structure(result, lambda(original): extension)
+	
+	# if the original consists of multiple parts, for each part we check if there is already an extends, we then update our extension to match
+	originalParts = split("[\\s]+", original)
+	parentExtensions = series()
+	for (index : size(originalParts) - 1)
+		until = size(originalParts) - 1 - index
+		originalParent = join(" ", offset(-until, originalParts))
+		parentExtension = result[/originalParent]
+		if (parentExtension != null)
+			parentExtensions = merge(parentExtensions, parentExtension)
+
+	parentExtensions = merge(parentExtensions, extension)
+	
+	extension = join(" ", parentExtensions)
+	regex = ""
+	extensionParts = split("[\\s]+", extension)
+	
+	if (size(originalParts) != size(extensionParts))
+		console("Invalid extends, selector count must match extension count", original, extension)
+	else
+		regex = ""
+		counter = size(extensionParts)
+		for (index : counter)
+			if (regex != "")
+				regex = regex + "([^,{]+)"
+			regex = regex + "(" + quoteRegex(extensionParts[/index]) + ")"
+		
+		# we build the replacement to simply reprint what we have
+		replacement = "$1$2$3"
+		# we loop twice for each part because we have an intermediate piece we need to capture
+		# we actually loop slightly too far but that's ok because we also have a trailing piece added to the regex
+		for (index : counter * 2)
+			replacement = replacement + "$" + (index + 4)
+
+		# append the new stuff
+		replacement = replacement + ", $3"
+		for (index : counter * 2)
+			if (index % 2 = 0)
+				replacement = replacement + quoteReplacement(originalParts[/index / 2])
+			else
+				replacement = replacement + "$" + (index + 4)
+		
+		regex = "(?s)(\\}|\\A|,)([\\s]*)([^}{,]*)" + regex + "\\b([^}{,]*)"
+		#console("regex", original, extension, regex, replacement)
+		
+		content = replace(regex, replacement, content)
+		
+		#content = replace("(?s)(\\}|\\A|,)([\\s]*)([^}{,]*)" + regex + ")\\b([^}{,]*)", "$1$2$3$4$5$6, $3$4" + original + "$6", content)
+		
+	#content = replace("(?s)(\\}|\\A|,)([\\s]*)([^}{,]*)(" + quoteRegex(extension) + ")\\b([^}{,]*)", "$1$2$3$4$5, $3" + original + "$5", content)
+##console("content is: " + typeof(content) + " / " + size(content), content)
+# IE can't handle nested calcs and they are (normally?) never necessary
+content = removeNestedCalcs(content)
+
+response.content(content, "text/css")

@@ -74,7 +74,6 @@ main input::-moz-placeholder {
 }
 
 main .container form .submit {
-	background-color: #5295bb;
 	border: none;
 	border-radius: 3px;
 	box-shadow: none;
@@ -85,9 +84,13 @@ main .container form .submit {
 	font-size: 0.8rem;
 	margin-top: 1.5rem;
 	outline: none;
-	text-transform: uppercase;
 	padding: 0.5rem 1rem;
+	background-color: #5295bb;
+	text-transform: uppercase;
 	font-weight: bold;
+}
+main .container form .submit[disabled] {
+	background-color: #888;
 }
 
 
