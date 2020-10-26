@@ -1,7 +1,11 @@
 <html>
 	<head>
 		<style>
-			${file.read("repository:nabu.web.core.components:/private/theme/standalone-page.css")}
+${{
+bytes content = file.read("repository:nabu.web.core.components:/private/theme/standalone-page.css")
+string stringified = content
+echo(stringified)
+}}
 		</style>
 		<title>Nabu - Unlock Website</title>
 		<meta charset="UTF-8">

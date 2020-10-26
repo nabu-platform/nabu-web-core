@@ -70,4 +70,7 @@ for (hit : hits)
 # IE can't handle nested calcs and they are (normally?) never necessary
 content = removeNestedCalcs(content)
 
-response.content(content, "text/css")
+if (environment("mobile") != true)
+	response.content(content, "text/css")
+else
+	echo(content)
