@@ -18,6 +18,9 @@ for (bundle : bundles)
 	# resolve included tpls
 	nabu.utils.resolve(target: target, bundlePath: bundle, regex: ".*\.tpl")
 	
+	# resolve included "nabu template jsons"
+	nabu.utils.resolve(target: target, bundlePath: bundle, regex: ".*\.npt", print: false)
+	
 	# resolve static resources
 	# used to have param: includes: "vendor"
 	# not sure why...

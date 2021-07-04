@@ -86,7 +86,7 @@ main .container form .submit {
 	outline: none;
 	padding: 0.5rem 1rem;
 	background-color: #5295bb;
-	text-transform: uppercase;
+	/*text-transform: uppercase;*/
 	font-weight: bold;
 }
 main .container form .submit[disabled] {

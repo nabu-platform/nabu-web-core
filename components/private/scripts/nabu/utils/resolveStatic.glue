@@ -1,7 +1,7 @@
 # input
 sequence
 	target ?= "repository:" + environment("webApplicationId") + ":/private/provided/resources"
-	regex ?= ".*\.(?!css|js|gcss|tpl|glue|sass|scss|md)[^.]+$"
+	regex ?= ".*\.(?!css|js|gcss|tpl|glue|sass|scss|md|npt)[^.]+$"
 	boolean force ?= null
 	
 	# whether or not to print the resulting resources
