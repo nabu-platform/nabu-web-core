@@ -1,1 +1,9 @@
-<?xml version="1.0" encoding="UTF-8" standalone="yes"?><node artifactManager="be.nabu.eai.module.types.structure.StructureManager" created="2018-08-01T17:49:18.655+02:00" lastModified="2020-05-22T14:32:15.210+02:00" leaf="true" version="11"><environmentId>apollo</environmentId><hidden>false</hidden><properties/><references>java.lang.String</references><references>java.lang.Boolean</references><references>be.nabu.utils.security.DigestAlgorithm</references></node>
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<node artifactManager="be.nabu.eai.module.types.structure.StructureManager" created="2018-08-01T17:49:18.655+02:00" lastModified="2021-12-16T10:54:54.980+01:00" leaf="true" version="14">
+    <environmentId>apollo</environmentId>
+    <hidden>false</hidden>
+    <properties/>
+    <references>java.lang.String</references>
+    <references>java.lang.Boolean</references>
+    <references>be.nabu.utils.security.DigestAlgorithm</references>
+</node>

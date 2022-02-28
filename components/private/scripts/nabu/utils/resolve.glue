@@ -222,16 +222,19 @@ resolveResources = method
 						lastModified = when(environment("development") == true, modified(url), null)
 						boolean noresolve = context.get("noresolve")
 						if (force || !exists(childTarget) || when(lastModified == null || noresolve, false, lastModified > modified(childTarget)))
-							log("\tReading from: " + url)
-							# get the content
-							try
-								content = file.read(url)
-								catch
-									throw("Could not read: " + url, $exception)
-	
-							log("\tWriting to: " + childTarget)
-							# write the content to the target
-							file.write(childTarget, content)
+							if (file.writable(childTarget))
+								log("\tReading from: " + url)
+								# get the content
+								try
+									content = file.read(url)
+									catch
+										throw("Could not read: " + url, $exception)
+		
+								log("\tWriting to: " + childTarget)
+								# write the content to the target
+								file.write(childTarget, content)
+							else
+								console("\tSkipping because we can not write to it: " + childTarget)
 						else
 							log("\tSkipping because it exists: " + childTarget)
 							

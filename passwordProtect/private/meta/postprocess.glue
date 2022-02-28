@@ -2,7 +2,7 @@ request = request.entity()/request
 # if we were let through with a referer whitelist, let's set the password in a cookie so you can return without the referer
 if (request != null)
 	whitelist = be.nabu.utils.mime.impl.MimeUtils.getHeader("Password-Whitelist", request/content/headers)/value
-	if (whitelist = "true")
+	if (whitelist == "true")
 		configuration = application.configuration("nabu.web.core.types.passwordProtect")
 		# let's double check that the referer is correct, otherwise you can cheat by simply sending that header in
 		referer = be.nabu.utils.mime.impl.MimeUtils.getHeader("Referer", request/content/headers)/value

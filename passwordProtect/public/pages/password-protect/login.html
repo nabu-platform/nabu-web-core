@@ -5,9 +5,11 @@ ${{
 bytes content = file.read("repository:nabu.web.core.components:/private/theme/standalone-page.css")
 string stringified = content
 echo(stringified)
+configuration = application.configuration("nabu.web.core.types.passwordProtect")
+applicationName = when(configuration/applicationName != null, configuration/applicationName, "Nabu")
 }}
 		</style>
-		<title>Nabu - Unlock Website</title>
+		<title>${applicationName} - Unlock Website</title>
 		<meta charset="UTF-8">
 		<script type="application/javascript">
 			function toggleButton() {
@@ -39,7 +41,7 @@ echo(stringified)
 			
 			<div class="container">
 				
-				<h1>Nabu</h1>
+				<h1>${applicationName}</h1>
 				<h2>Unlock Website</h2>
 				
 				<form method="post" id="login">
