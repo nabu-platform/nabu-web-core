@@ -1,0 +1,54 @@
+string component ?= null
+string content ?= null
+string [] extensions ?= series()
+mixins ?= null
+
+extensionSelecter = when(size(extensions) > 0, ", .is-" + join(", .is-", extensions), "")
+
+useDefaults = false
+defaults = series("h1", "h2", "h3", "h4", "h5", "h6", "p", "button")
+
+defaultSelector = when(useDefaults && component ? defaults, ", " + component, "")
+
+# the default settings of the component are not shared to the extension, we assume they have their own default
+echo(".is-" + component + defaultSelector + " {")
+
+default = first(mixins[name ~ "^" + /component + "-variant-default"])
+# if we don't have a default, we just take all the templates
+if (default != null)
+	echo("\t@include " + default/name + ";")
+# we no longer generate a "default" default, you need to specifically set a default variant
+else if (false)
+	# first inject all the template mixins, they are the "default" variant
+	for (mixin : mixins[name ~ "^template-.*"])
+		echo("\t@include " + mixin/name + ";")
+
+echo("}")
+# the dimensions are shared across the extensions, so we have a multiple selector
+echo(".is-" + component + extensionSelecter + " {")
+
+# TODO: variant dimensions has to be on top, it is actually a pre-built combination of dimensions
+# if you want to overwrite a dimension within a variant, the css order is really important because the variant and the dimension have the same specificity
+# .is-button.is-variant-primary
+# .is-button.is-size-large
+for (mixin : mixins[name ~ "^" + /component + "-variant-.*"])
+	variant = replace("^" + component + "-", "", mixin/name)
+	variantName = replace("^variant-", "", variant)
+	if (mixin/name !~ ".*-default$")
+		echo("\t&.is-" + variant + " {")
+		echo("\t\t@include " + mixin/name + ";")
+		for (mixin : mixins[name ~ "^" + /component + "-" + /variantName + "-modifier-.*"])
+			variantModifier = replace("^" + component + "-" + variantName + "-modifier-", "", mixin/name)
+			echo("\t\t&.is-" + variantModifier + " {")
+			echo("\t\t\t@include " + mixin/name + ";")
+			echo("\t\t}")
+		echo("\t}")
+	
+
+# then finally inject all the dimensions
+for (mixin : mixins[name !~ "^" + /component + "-variant-.*" && name !~ "^" + /component + "-.*-modifier-.*" && name ~ "^" + /component + "-.*"])
+	echo("\t&.is-" + replace("^" + component + "-", "", mixin/name) + " {")
+	echo("\t\t@include " + mixin/name + ";")
+	echo("\t}")
+
+echo("}")

@@ -1,0 +1,37 @@
+target ?= null
+bundlePath ?= "repository:" + environment("webApplicationId") + ":/private/provided/bundle.json"
+string [] directories ?= fragmentResources("public/artifacts")
+autoBundle ?= true
+debug ?= false
+
+response.header("Content-Type", "text/css")
+
+bundles = series(bundlePath)
+
+if (autoBundle)
+	bundles = merge(bundles, fragmentResources("public/bundled/auto-bundle.json"))
+
+scss = ""
+for (bundle : bundles)
+	# still load css
+	inject(nabu.utils.resolve(target: target, bundlePath: bundle, regex: ".*\.(css)", debug:debug)/result)
+		
+	# load scss files
+	scss = scss + "\n" + nabu.utils.resolve(target: target, bundlePath: bundle, regex: ".*\.scss", debug:debug)/concatenated
+
+for (directory : directories)
+	# load all the artifacts
+	for (file : file.list(directory, fileRegex: ".*\.(css|scss)", recursive: true))
+		if (file ~ ".*\.scss")
+			scss = scss + "\n" + template(read(directory + "/" + file))
+		else if (file ~ ".*\.css")
+			echo("\n", template(read(directory + "/" + file)))
+
+
+
+captureEcho()
+nabu.utils.arisGenerate(scss)
+scss = scss + "\n" + releaseEcho()
+
+
+echo(sass.compile(scss))

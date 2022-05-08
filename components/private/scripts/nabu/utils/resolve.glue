@@ -33,7 +33,7 @@ sequence
 	boolean root ?= false
 	
 	# whether to print out debugging information
-	boolean debug ?= false
+	boolean debug ?= environment("debug-resolve") == true
 	
 	# whether or not we allow gcss to be loaded
 	boolean allowGcss ?= true

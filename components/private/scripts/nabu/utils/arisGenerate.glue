@@ -1,0 +1,41 @@
+fullContent ?= null
+
+extensions = series()
+for (extension : find("//.*@extension[\s]+(.*)", fullContent))
+	parts = split("[\s]+", extension)
+	extensions = merge(extensions, structure(name: parts[0], component: parts[1]))
+
+components = find("//.*@component[\s]+(.*)", fullContent)
+patterns = find("//.*@pattern[\s]+(.*)", fullContent)
+
+
+# this is rather nasty, it assumes the mixin has proper whitespacing because the ending } is assumped to be right after a new line
+# it is in lieu of more expensive processing which is currently out of scope
+mixins = find("(?s)@mixin.*?\{.*?\n\}", fullContent)
+
+mixins = derive(lambda(mixin, structure(
+		name: replace("(?s)@mixin[\s]*([^{\s]+).*", "$1", mixin),
+		body: trim(replace("(?s)^[^{]+\{(.*)\}[^}]*$", "$1", mixin))
+	)), mixins)
+
+
+for (component : components)
+	nabu.utils.arisComponent(
+		component: component,
+		content: fullContent,
+		mixins: mixins,
+		extensions: extensions[component == /component]/name)
+
+for (pattern : patterns)
+	nabu.utils.arisComponent(
+		component: pattern,
+		content: fullContent,
+		mixins: mixins,
+		extensions: extensions[component == /pattern]/name)
+
+for (extension : extensions)
+	nabu.utils.arisComponent(
+		component: extension/name,
+		content: fullContent,
+		mixins: mixins,
+		extensions: extensions[component == /extension/name]/name)
