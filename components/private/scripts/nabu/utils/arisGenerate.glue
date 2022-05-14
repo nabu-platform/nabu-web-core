@@ -19,23 +19,39 @@ mixins = derive(lambda(mixin, structure(
 	)), mixins)
 
 
+findExtensions = lambda
+	name ?= null
+	# start with the actual extensions
+	@return
+	names = extensions[component == /name]/name
+	# currently max 5 deep?
+	for (5)
+		childExtensions = extensions[component ? /names && name !? /names]/name
+		if (size(childExtensions) == 0)
+			break
+		else
+			names = merge(names, childExtensions)
+
 for (component : components)
 	nabu.utils.arisComponent(
 		component: component,
 		content: fullContent,
 		mixins: mixins,
-		extensions: extensions[component == /component]/name)
+		extensions: findExtensions(component))
+		#extensions: extensions[component == /component]/name)
 
 for (pattern : patterns)
 	nabu.utils.arisComponent(
 		component: pattern,
 		content: fullContent,
 		mixins: mixins,
-		extensions: extensions[component == /pattern]/name)
+		extensions: findExtensions(pattern))
+		#extensions: extensions[component == /pattern]/name)
 
 for (extension : extensions)
 	nabu.utils.arisComponent(
 		component: extension/name,
 		content: fullContent,
 		mixins: mixins,
-		extensions: extensions[component == /extension/name]/name)
+		extensions: findExtensions(extension/name))
+		#extensions: extensions[component == /extension/name]/name)

@@ -25,7 +25,7 @@ else if (false)
 
 echo("}")
 # the dimensions are shared across the extensions, so we have a multiple selector
-echo(".is-" + component + extensionSelecter + " {")
+echo(".is-" + component + defaultSelector + extensionSelecter + " {")
 
 # TODO: variant dimensions has to be on top, it is actually a pre-built combination of dimensions
 # if you want to overwrite a dimension within a variant, the css order is really important because the variant and the dimension have the same specificity

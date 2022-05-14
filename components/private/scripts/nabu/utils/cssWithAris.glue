@@ -30,8 +30,15 @@ for (directory : directories)
 
 
 captureEcho()
-nabu.utils.arisGenerate(scss)
+result = nabu.utils.arisGenerate(scss)
 scss = scss + "\n" + releaseEcho()
 
+css = sass.compile(scss)
+css = arisPostProcess(
+	css: css,
+	components: result/components,
+	patterns: result/patterns,
+	extensions: result/extensions,
+	mixins: result/mixins)/css
 
-echo(sass.compile(scss))
+echo(css)
