@@ -1,5 +1,3 @@
-# To refactor hidden dimensions & extensions
-
 # the scss should already be compiled at this point
 css ?= null
 # don't want to recalculate these, just pass them along from the original generate
@@ -49,7 +47,6 @@ for (single : hidden)
 		for (name : names)
 			# if it is a component of any type, we must take that and all its extension
 			if (name ? components || name ? patterns || name ? extensions/name)
-				console("---> replacing " + name, replacements)
 				resultingExtensions = findExtensions(name)
 				# we don't want to duplicate parts that do not have the reference, so store them here
 				result = replacements[$this !~ ".*:is-" + /name + ".*"]

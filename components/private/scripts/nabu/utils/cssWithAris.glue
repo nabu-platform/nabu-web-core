@@ -4,6 +4,8 @@ string [] directories ?= fragmentResources("public/artifacts")
 autoBundle ?= true
 debug ?= false
 
+mode = "light-extension"
+
 response.header("Content-Type", "text/css")
 
 bundles = series(bundlePath)
@@ -28,17 +30,40 @@ for (directory : directories)
 			echo("\n", template(read(directory + "/" + file)))
 
 
+# generate full extensions
+if (mode == "full-extension")
+	captureEcho()
+	result = nabu.utils.arisGenerate(scss, function("nabu.utils.arisComponent"))
+	scss = scss + "\n" + releaseEcho()
+	
+	css = sass.compile(scss)
+	css = arisPostProcess(
+		css: css,
+		components: result/components,
+		patterns: result/patterns,
+		extensions: result/extensions,
+		mixins: result/mixins)/css
 
-captureEcho()
-result = nabu.utils.arisGenerate(scss)
-scss = scss + "\n" + releaseEcho()
+else if (mode == "light-extension")
+	captureEcho()
+	result = nabu.utils.arisGenerate(scss, function("nabu.utils.arisComponent2"))
+	scss = scss + "\n" + releaseEcho()
+	
+	css = sass.compile(scss)
+	css = arisPostProcess(
+		css: css,
+		components: result/components,
+		patterns: result/patterns,
+		extensions: result/extensions,
+		mixins: result/mixins)/css
 
-css = sass.compile(scss)
-css = arisPostProcess(
-	css: css,
-	components: result/components,
-	patterns: result/patterns,
-	extensions: result/extensions,
-	mixins: result/mixins)/css
+# light with unique naming
+else if (mode == "light-unique")
+	css = sass.compile(scss)
+	css = replace(":is-", ".is-", css)
+# unique naming with backwards compatibility for IE
+else if (mode == "compatible-unique")
+	css = sass.compile(scss)
+	css = replace(":is-", ".is-", css)
 
 echo(css)

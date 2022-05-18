@@ -1,16 +1,25 @@
-# This particular approach goes for full explosion
+# This approach has two distinct disadvantages:
+# All dimensions must be uniquely named
+#
+# The default approach will not work on IE (not supported)
 # .is-button {}
+#
+# to limit variants to their core type: (not supported by IE), note that :where has _no_ specificity ever (unlike :is)
+# :where(.is-button).is-variant-primary {}
+#
+# in IE we can still do this but this raises specificity:
 # .is-button.is-variant-primary {}
-# .is-button.is-size-small {}
-# however, because most dimensions are shared, it explodes the resulting css massively because all combinations must appear
-# .is-button.is-size-small, .is-p.is-size-small, .is-h1.is-size-small... {}
+#
+# Dimensions are no longer attached to their core type (hence the need for unique naming)
+# .is-size-small {}
+#
+# In IE fallback mode however, the specificity is not enough, so we can do something sneaky to increase specificity artificially:
+# .is-size-small.is-size-small {}
 
 string component ?= null
 string content ?= null
 string [] extensions ?= series()
 mixins ?= null
-
-extensionSelecter = when(size(extensions) > 0, ", .is-" + join(", .is-", extensions), "")
 
 useDefaults = false
 defaults = series("h1", "h2", "h3", "h4", "h5", "h6", "p", "button")
@@ -31,30 +40,27 @@ else if (false)
 		echo("\t@include " + mixin/name + ";")
 
 echo("}")
-# the dimensions are shared across the extensions, so we have a multiple selector
-echo(".is-" + component + defaultSelector + extensionSelecter + " {")
 
-# TODO: variant dimensions has to be on top, it is actually a pre-built combination of dimensions
-# if you want to overwrite a dimension within a variant, the css order is really important because the variant and the dimension have the same specificity
-# .is-button.is-variant-primary
-# .is-button.is-size-large
+# the dimensions are shared across the extensions, so we have a multiple selector
+echo(":where(:is-" + component + defaultSelector + ") {")
+
 for (mixin : mixins[name ~ "^" + /component + "-variant-.*"])
 	variant = replace("^" + component + "-", "", mixin/name)
 	variantName = replace("^variant-", "", variant)
 	if (mixin/name !~ ".*-default$")
-		echo("\t&.is-" + variant + " {")
+		echo("\t.is-" + variant + " {")
 		echo("\t\t@include " + mixin/name + ";")
 		for (mixin : mixins[name ~ "^" + /component + "-" + /variantName + "-modifier-.*"])
 			variantModifier = replace("^" + component + "-" + variantName + "-modifier-", "", mixin/name)
-			echo("\t\t&.is-" + variantModifier + " {")
-			echo("\t\t\t@include " + mixin/name + ";")
-			echo("\t\t}")
+			echo("\t.is-" + variantModifier + " {")
+			echo("\t\t@include " + mixin/name + ";")
+			echo("\t}")
 		echo("\t}")
+
+echo("}")
 
 # then finally inject all the dimensions
 for (mixin : mixins[name !~ "^" + /component + "-variant-.*" && name !~ "^" + /component + "-.*-modifier-.*" && name ~ "^" + /component + "-.*"])
-	echo("\t&.is-" + replace("^" + component + "-", "", mixin/name) + " {")
-	echo("\t\t@include " + mixin/name + ";")
-	echo("\t}")
-
-echo("}")
+	echo(".is-" + replace("^" + component + "-", "", mixin/name) + " {")
+	echo("\t@include " + mixin/name + ";")
+	echo("}")

@@ -1,4 +1,5 @@
 fullContent ?= null
+lambda generator ?= null
 
 extensions = series()
 for (extension : find("//.*@extension[\s]+(.*)", fullContent))
@@ -33,7 +34,7 @@ findExtensions = lambda
 			names = merge(names, childExtensions)
 
 for (component : components)
-	nabu.utils.arisComponent(
+	generator(
 		component: component,
 		content: fullContent,
 		mixins: mixins,
@@ -41,7 +42,7 @@ for (component : components)
 		#extensions: extensions[component == /component]/name)
 
 for (pattern : patterns)
-	nabu.utils.arisComponent(
+	generator(
 		component: pattern,
 		content: fullContent,
 		mixins: mixins,
@@ -49,7 +50,7 @@ for (pattern : patterns)
 		#extensions: extensions[component == /pattern]/name)
 
 for (extension : extensions)
-	nabu.utils.arisComponent(
+	generator(
 		component: extension/name,
 		content: fullContent,
 		mixins: mixins,
