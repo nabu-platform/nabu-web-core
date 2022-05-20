@@ -54,7 +54,11 @@ for (single : hidden)
 			# if it is a component of any type, we must take that and all its extension
 			if (name ? components/name)
 				resultingExtensions = findExtensions(name)
-				replacement = replace(":is-" + name, ":is(" + join(", ", ".is-" + merge(name, resultingExtensions)) + ")", replacement)
+				# optimize away the :is() if not necessary
+				if (size(resultingExtensions) == 0)
+					replacement = replace(":is-" + name, ".is-" + name, replacement)
+				else
+					replacement = replace(":is-" + name, ":is(" + join(", ", ".is-" + merge(name, resultingExtensions)) + ")", replacement)
 
 		if (original == replacement)
 			break
@@ -89,10 +93,17 @@ for (single : hidden)
 			applicableVariants = replace(".*-(variant-.*)", "$1", applicableVariants)
 			allVariants = unique(merge(allVariants, applicableVariants))
 			
-		replacement = replace(
-			quoteRegex(explodedReference),
-			quoteReplacement(parts[0] + "):is(" + join(", ", ".is-" + merge(dimension, allVariants)) + ")"), 
-			replacement)
+		# we avoid the more complex :is() selector if it is not needed
+		if (size(allVariants) == 0)
+			replacement = replace(
+				quoteRegex(explodedReference),
+				quoteReplacement(parts[0] + ").is-" + dimension), 
+				replacement)
+		else
+			replacement = replace(
+				quoteRegex(explodedReference),
+				quoteReplacement(parts[0] + "):is(" + join(", ", ".is-" + merge(dimension, allVariants)) + ")"), 
+				replacement)
 	
 	# we don't want to mess with remaining :where() or :is() selectors, they have embedded "," separators, easiest way to do that is just replace it with a placeholder
 	# we do want to keep other selectors that might be interesting, like :not() etc
@@ -113,7 +124,11 @@ for (single : hidden)
 			# we want to remove the name of the component and just retain ".is-variant-something"
 			applicableVariants = replace(".*-(variant-.*)", "$1", applicableVariants)
 			
-			replacement = replace(":is-" + dimension, ":is(" + join(", ", ".is-" + merge(dimension, applicableVariants)) + ")", replacement)
+			# optimize away the :is if not necessary
+			if (size(applicableVariants) == 0)
+				replacement = replace(":is-" + dimension, ".is-" + dimension, replacement)
+			else
+				replacement = replace(":is-" + dimension, ":is(" + join(", ", ".is-" + merge(dimension, applicableVariants)) + ")", replacement)
 			
 		
 		# of course we also just want to target the dimension
