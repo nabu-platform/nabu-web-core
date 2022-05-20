@@ -4,7 +4,8 @@ string [] directories ?= fragmentResources("public/artifacts")
 autoBundle ?= true
 debug ?= false
 
-mode = "light-extension"
+#mode = "light-extension"
+mode = "full-extension"
 
 response.header("Content-Type", "text/css")
 
@@ -46,15 +47,13 @@ if (mode == "full-extension")
 
 else if (mode == "light-extension")
 	captureEcho()
-	result = nabu.utils.arisGenerate(scss, function("nabu.utils.arisComponent2"))
+	result = nabu.utils.arisGenerate2(scss, function("nabu.utils.arisComponent2"))
 	scss = scss + "\n" + releaseEcho()
 	
 	css = sass.compile(scss)
-	css = arisPostProcess(
+	css = arisPostProcess3(
 		css: css,
 		components: result/components,
-		patterns: result/patterns,
-		extensions: result/extensions,
 		mixins: result/mixins)/css
 
 # light with unique naming

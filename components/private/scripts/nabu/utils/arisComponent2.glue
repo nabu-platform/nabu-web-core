@@ -41,26 +41,28 @@ else if (false)
 
 echo("}")
 
-# the dimensions are shared across the extensions, so we have a multiple selector
+# variants don't need to be exploded, they only apply to the component itself
 echo(":where(:is-" + component + defaultSelector + ") {")
 
 for (mixin : mixins[name ~ "^" + /component + "-variant-.*"])
 	variant = replace("^" + component + "-", "", mixin/name)
 	variantName = replace("^variant-", "", variant)
 	if (mixin/name !~ ".*-default$")
-		echo("\t.is-" + variant + " {")
+		echo("\t&.is-" + variant + " {")
 		echo("\t\t@include " + mixin/name + ";")
 		for (mixin : mixins[name ~ "^" + /component + "-" + /variantName + "-modifier-.*"])
 			variantModifier = replace("^" + component + "-" + variantName + "-modifier-", "", mixin/name)
-			echo("\t.is-" + variantModifier + " {")
+			echo("\t&.is-" + variantModifier + " {")
 			echo("\t\t@include " + mixin/name + ";")
 			echo("\t}")
 		echo("\t}")
-
 echo("}")
 
+# dimensions need explosion
+echo(":where(:is-" + component + defaultSelector + ") {")
 # then finally inject all the dimensions
 for (mixin : mixins[name !~ "^" + /component + "-variant-.*" && name !~ "^" + /component + "-.*-modifier-.*" && name ~ "^" + /component + "-.*"])
-	echo(".is-" + replace("^" + component + "-", "", mixin/name) + " {")
-	echo("\t@include " + mixin/name + ";")
-	echo("}")
+	echo("\t.is-" + replace("^" + component + "-", "", mixin/name) + " {")
+	echo("\t\t@include " + mixin/name + ";")
+	echo("\t}")
+echo("}")

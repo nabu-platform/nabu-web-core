@@ -4,8 +4,6 @@
 css ?= null
 # don't want to recalculate these, just pass them along from the original generate
 components ?= null
-patterns ?= null
-extensions ?= null
 mixins ?= null
 
 # copy paste from arisGenerate
@@ -13,14 +11,15 @@ findExtensions = lambda
 	name ?= null
 	# start with the actual extensions
 	@return
-	names = extensions[component == /name]/name
+	names = components[component == /name]/name
 	# currently max 5 deep?
 	for (5)
-		childExtensions = extensions[component ? /names && name !? /names]/name
+		childExtensions = components[component ? /names && name !? /names]/name
 		if (size(childExtensions) == 0)
 			break
 		else
 			names = merge(names, childExtensions)
+
 # find all hidden dimensions etc
 # we include the trailing { to make sure we have a full unique match, not a partial match
 # for instance if a particular rule is simply "more specific", it would match the beginning, but not the end
@@ -58,7 +57,7 @@ for (single : hidden)
 		names = unique(find(":is-([\w-]+)", replacement))
 		for (name : names)
 			# if it is a component of any type, we must take that and all its extension
-			if (name ? components || name ? patterns || name ? extensions/name)
+			if (name ? components/name)
 				resultingExtensions = findExtensions(name)
 				# we don't want to duplicate parts that do not have the reference, so store them here
 				result = replacements[$this !~ ".*:is-" + /name + ".*"]

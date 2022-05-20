@@ -1,0 +1,94 @@
+# first we output all the components, like .is-button
+# then we output all the variants, we use :where() if multiple variants with the same name exist across component, otherwise it is at the root
+# then we output all dimensions, we use :where() if multiple dimensions exist with the same name
+
+
+fullContent ?= null
+lambda generator ?= null
+
+components = series()
+for (component : find("//.*@(?:extension|component|pattern)[\s]+(.*)", fullContent))
+	parts = split("[\s]+", component)
+	components = merge(components, structure(name: parts[0], component: parts[1]))
+
+# this is rather nasty, it assumes the mixin has proper whitespacing because the ending } is assumped to be right after a new line
+# it is in lieu of more expensive processing which is currently out of scope
+mixins = find("(?s)@mixin.*?\{.*?\n\}", fullContent)
+
+mixins = series.resolve(derive(lambda(mixin, structure(
+		name: replace("(?s)@mixin[\s]*([^{\s]+).*", "$1", mixin),
+		body: trim(replace("(?s)^[^{]+\{(.*)\}[^}]*$", "$1", mixin))
+	)), mixins))
+
+findExtensions = lambda
+	name ?= null
+	# start with the actual extensions
+	@return
+	names = components[component == /name]/name
+	# currently max 5 deep?
+	for (5)
+		childExtensions = components[component ? /names && name !? /names]/name
+		if (size(childExtensions) == 0)
+			break
+		else
+			names = merge(names, childExtensions)
+
+useDefaults = false
+defaults = series("h1", "h2", "h3", "h4", "h5", "h6", "p", "button")
+
+# while looping we also build a map of all the variants and dimensions
+variants = series()
+dimensions = series()
+counting = structure()
+
+# generate the base component classes
+for (component : components)
+	console("generating", component/name)
+	# get the default variant (if any)
+	default = first(mixins[name ~ "^" + /component/name + "-variant-default"])
+	
+	# if we have a default, we initiate the component
+	if (default != null)
+		defaultSelector = when(useDefaults && component/name ? defaults, ", " + component/name, "")
+		echo(".is-" + component/name + defaultSelector + " {")
+		echo("\t@include " + default/name + ";")
+		echo("}")
+	
+	for (mixin : mixins[name ~ "^" + /component/name + "-.*"])
+		# the dimension name must not contain a "-"
+		# underscores are automatically replaced with "-" in the generation process so the css can look more natural
+		dimension = replace("^" + component/name + "-([^-]+)-.*", "$1", mixin/name)
+		# options can have dashes in them, but underscores will also automatically be replaced with dashes
+		option = replace("^" + component/name + "-" + dimension + "-", "", mixin/name)
+
+		# standardize
+		dimension = replace("_", "-", dimension)
+		option = replace("_", "-", option)
+		
+		result = structure(
+			mixin, 
+			component: component/name, 
+			dimension: dimension,
+			option: option)
+
+		# dedicated dimension
+		if (dimension == "variant")
+			# the default option is reserved
+			if (option != "default")
+				variants = merge(variants, result)
+		else
+			dimensions = merge(dimensions, result)
+			
+		current = counting[/dimension + "-" + /option]
+		counting = structure(counting, lambda(dimension + "-" + option): when(current == null, 1, current + 1))
+
+# we want the same logic for both variants and dimensions (but in that specific order), might as well do it like this...
+for (series : series(variants, dimensions))
+	for (single : series)
+		# if we have multiple parts with the same name, we have to use a where() to specify further
+		if (counting[/single/dimension + "-" + /single/option] > 1)
+			echo(":where(:is-" + single/component + ").is-" + single/dimension + "-" + single/option + " {")
+		else
+			echo(".is-" + single/dimension + "-" + single/option + " {")
+		echo("\t@include " + single/name + ";")
+		echo("}")
