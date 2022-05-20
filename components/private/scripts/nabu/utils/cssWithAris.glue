@@ -4,8 +4,8 @@ string [] directories ?= fragmentResources("public/artifacts")
 autoBundle ?= true
 debug ?= false
 
-#mode = "light-extension"
-mode = "full-extension"
+mode = "light-extension"
+#mode = "full-extension"
 
 response.header("Content-Type", "text/css")
 

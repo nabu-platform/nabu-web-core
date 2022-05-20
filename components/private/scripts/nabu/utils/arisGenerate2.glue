@@ -43,7 +43,6 @@ counting = structure()
 
 # generate the base component classes
 for (component : components)
-	console("generating", component/name)
 	# get the default variant (if any)
 	default = first(mixins[name ~ "^" + /component/name + "-variant-default"])
 	

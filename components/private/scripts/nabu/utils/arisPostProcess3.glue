@@ -55,20 +55,13 @@ for (single : hidden)
 		# can have multiple combined, like :is-button:has-border-pill
 		# we need to explode it then...
 		names = unique(find(":is-([\w-]+)", replacement))
+		# at this point we don't want to use where because you specifically typed it, you probably want the specificity
 		for (name : names)
 			# if it is a component of any type, we must take that and all its extension
 			if (name ? components/name)
 				resultingExtensions = findExtensions(name)
-				# we don't want to duplicate parts that do not have the reference, so store them here
-				result = replacements[$this !~ ".*:is-" + /name + ".*"]
-				# remove them from the list of replacements
-				replacements = replacements[$this !? /result]
-				# duplicate the replacements for each iteration
-				for (component : merge(name, resultingExtensions))
-					result = merge(result, replace(":is-" + name, ".is-" + component, replacements))
-				replacements = result
-				
-		replacement = join(", ", replacements) + " {"
+				replacement = replace(":is-" + name, ":is(" + join(", ", ".is-" + merge(name, resultingExtensions)) + ")", replacement)
+
 		if (original == replacement)
 			break
 		
@@ -98,19 +91,12 @@ for (single : hidden)
 			component = replace("^.is-([\w-]+).*", "$1", dimensionReference)
 			dimension = replace(".*:is-([\w-]+).*", "$1", dimensionReference)
 			# we want to check for variants of that component that embed the dimension
-			applicableVariants = mixins[name ~ /component + "-variant-.*" && body ~ "(?s).*@include[\s]+[\w-]+-" + /dimension + "[\s]*;"]/name
+			applicableVariants = mixins[name ~ /component + "-variant-.*" && body ~ "(?s).*@include[\s]+[\w-]+-" + /dimension + "[\s]*;.*"]/name
 			# we want to remove the name of the component and just retain ".is-variant-something"
 			applicableVariants = replace(".*-(variant-.*)", "$1", applicableVariants)
-			# we don't want to duplicate parts that do not have the reference, so store them here
-			result = replacements[$this !~ ".*" + /dimensionReference + ".*"]
-			# remove them from the list of replacements
-			replacements = replacements[$this !? /result]
-			# we want to add a copy for the original dimension and any variant that embeds it
-			for (singleVariant : merge(dimension, applicableVariants))
-				result = merge(result, replace(quoteRegex(":is-" + dimension), quoteReplacement(".is-" + singleVariant), dimensionReference))
-			replacements = result
-				
-		replacement = join(", ", replacements) + " {"
+			
+			replacement = replace(":is-" + dimension, ":is(" + join(", ", ".is-" + merge(dimension, applicableVariants)) + ")", replacement)
+			
 		
 		# of course we also just want to target the dimension
 		if (original == replacement)
@@ -123,7 +109,6 @@ for (single : hidden)
 	# replace again	
 	for (clause : clauses)
 		replacement = replace(quoteRegex("&" + $index), quoteReplacement(clause), replacement)
-	console("replacing in", replacement)
 	
 	# for dimensions we use the "has" syntax, so "has-border-pill"
 	# so the problem for dimensions is that variants encapsulate them
