@@ -3,6 +3,8 @@ bundlePath ?= "repository:" + environment("webApplicationId") + ":/private/provi
 string [] directories ?= fragmentResources("public/artifacts")
 autoBundle ?= true
 debug ?= false
+# we can skip the compile if we are interested in the aris definitions
+compile ?= true
 
 mode = "light-extension"
 #mode = "full-extension"
@@ -17,7 +19,8 @@ if (autoBundle)
 scss = ""
 for (bundle : bundles)
 	# still load css
-	inject(nabu.utils.resolve(target: target, bundlePath: bundle, regex: ".*\.(css)", debug:debug)/result)
+	if (compile)
+		inject(nabu.utils.resolve(target: target, bundlePath: bundle, regex: ".*\.(css)", debug:debug)/result)
 		
 	# load scss files
 	scss = scss + "\n" + nabu.utils.resolve(target: target, bundlePath: bundle, regex: ".*\.scss", debug:debug)/concatenated
@@ -27,7 +30,7 @@ for (directory : directories)
 	for (file : file.list(directory, fileRegex: ".*\.(css|scss)", recursive: true))
 		if (file ~ ".*\.scss")
 			scss = scss + "\n" + template(read(directory + "/" + file))
-		else if (file ~ ".*\.css")
+		else if (file ~ ".*\.css" && compile)
 			echo("\n", template(read(directory + "/" + file)))
 
 
@@ -37,24 +40,26 @@ if (mode == "full-extension")
 	result = nabu.utils.arisGenerate(scss, function("nabu.utils.arisComponent"))
 	scss = scss + "\n" + releaseEcho()
 	
-	css = sass.compile(scss)
-	css = arisPostProcess(
-		css: css,
-		components: result/components,
-		patterns: result/patterns,
-		extensions: result/extensions,
-		mixins: result/mixins)/css
+	if (compile)
+		css = sass.compile(scss)
+		css = arisPostProcess(
+			css: css,
+			components: result/components,
+			patterns: result/patterns,
+			extensions: result/extensions,
+			mixins: result/mixins)/css
 
 else if (mode == "light-extension")
 	captureEcho()
 	result = nabu.utils.arisGenerate2(scss, function("nabu.utils.arisComponent2"))
 	scss = scss + "\n" + releaseEcho()
 	
-	css = sass.compile(scss)
-	css = arisPostProcess3(
-		css: css,
-		components: result/components,
-		mixins: result/mixins)/css
+	if (compile)
+		css = sass.compile(scss)
+		css = arisPostProcess3(
+			css: css,
+			components: result/components,
+			mixins: result/mixins)/css
 
 # light with unique naming
 else if (mode == "light-unique")
@@ -65,4 +70,5 @@ else if (mode == "compatible-unique")
 	css = sass.compile(scss)
 	css = replace(":is-", ".is-", css)
 
-echo(css)
+if (compile)
+	echo(css)
