@@ -18,6 +18,12 @@ if (autoBundle)
 
 scss = ""
 
+captureEcho()
+arisBreakpoints()
+breakpoints = releaseEcho()
+if (breakpoints != null && breakpoints != "")
+	scss = scss + breakpoints
+
 # preload variables that have been set in the application
 if (file.readable("repository:" + environment("webApplicationId") + ":/public/aris/variables.scss"))
 	string content = file.read("repository:" + environment("webApplicationId") + ":/public/aris/variables.scss")
@@ -39,7 +45,6 @@ for (directory : directories)
 		else if (file ~ ".*\.css" && compile)
 			echo("\n", template(read(directory + "/" + file)))
 
-
 # generate full extensions
 if (mode == "full-extension")
 	captureEcho()
@@ -59,7 +64,6 @@ else if (mode == "light-extension")
 	# postload variants that have been set in the application
 	if (file.readable("repository:" + environment("webApplicationId") + ":/public/aris/variants.scss"))
 		string content = file.read("repository:" + environment("webApplicationId") + ":/public/aris/variants.scss")
-		console("reading additional?", content)
 		scss = scss + "\n" + content
 
 	captureEcho()

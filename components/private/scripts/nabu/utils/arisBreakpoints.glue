@@ -1,0 +1,22 @@
+configuration = application.configuration("nabu.web.page.core.types.configuration")
+
+if (size(configuration/devices) > 0)
+	result = "$breakpoints: (\n"
+	first = true
+	for (device : configuration/devices)
+		if (first)
+			first = false
+		else
+			result = result + ",\n"
+		width = device/width
+		if (width == null)
+			if (device/name == "phone")
+				width = "512"
+			else if (device/name == "tablet")
+				width = "960"
+			else if (device/name == "desktop")
+				width= "1280"
+		if (width != null && device/name != null)
+			result = result + "\t'" + device/name + "': " + width + "px"
+	result = result + "\n);"
+	echo(result)
