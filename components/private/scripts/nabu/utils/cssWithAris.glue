@@ -17,6 +17,12 @@ if (autoBundle)
 	bundles = merge(bundles, fragmentResources("public/bundled/auto-bundle.json"))
 
 scss = ""
+
+# preload variables that have been set in the application
+if (file.readable("repository:" + environment("webApplicationId") + ":/public/aris/variables.scss"))
+	string content = file.read("repository:" + environment("webApplicationId") + ":/public/aris/variables.scss")
+	scss = scss + "\n" + content
+
 for (bundle : bundles)
 	# still load css
 	if (compile)
@@ -50,9 +56,16 @@ if (mode == "full-extension")
 			mixins: result/mixins)/css
 
 else if (mode == "light-extension")
+	# postload variants that have been set in the application
+	if (file.readable("repository:" + environment("webApplicationId") + ":/public/aris/variants.scss"))
+		string content = file.read("repository:" + environment("webApplicationId") + ":/public/aris/variants.scss")
+		console("reading additional?", content)
+		scss = scss + "\n" + content
+
 	captureEcho()
 	result = nabu.utils.arisGenerate2(scss, function("nabu.utils.arisComponent2"))
 	scss = scss + "\n" + releaseEcho()
+	
 	
 	if (compile)
 		css = sass.compile(scss)
