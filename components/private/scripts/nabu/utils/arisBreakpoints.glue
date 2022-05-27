@@ -17,6 +17,9 @@ if (size(configuration/devices) > 0)
 			else if (device/name == "desktop")
 				width= "1280"
 		if (width != null && device/name != null)
-			result = result + "\t'" + device/name + "': " + width + "px"
+			integer width = width
+			result = result + "\t'" + device/name + "': " + width + "px,"
+			result = result + "\t'below-" + device/name + "': " + (width - 1) + "px,"
+			result = result + "\t'above-" + device/name + "': " + (width + 1) + "px"
 	result = result + "\n);"
 	echo(result)
