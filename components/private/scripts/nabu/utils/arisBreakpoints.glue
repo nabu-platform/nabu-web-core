@@ -1,29 +1,42 @@
 configuration = application.configuration("nabu.web.page.core.types.configuration")
 
+# we want to build a map of devices but ensure that the required ones are always available
+devices = series()
 if (size(configuration/devices) > 0)
-	result = "$breakpoints: (\n"
-	first = true
+	devices = merge(devices, configuration/devices)
+
+if (!devices[name == "phone"])
+	devices = merge(devices, structure(name: "phone"))
+if (!devices[name == "tablet"])
+	devices = merge(devices, structure(name: "tablet"))
+if (!devices[name == "desktop"])
+	devices = merge(devices, structure(name: "desktop"))
+if (!devices[name == "wide"])
+	devices = merge(devices, structure(name: "wide"))
+
+result = "$breakpoints: (\n"
+first = true
+
+for (device : configuration/devices)
+	if (first)
+		first = false
+	else
+		result = result + ",\n"
+	width = device/width
+	if (width == null)
+		if (device/name == "phone")
+			width = "512"
+		else if (device/name == "tablet")
+			width = "960"
+		else if (device/name == "desktop")
+			width= "1280"
+		else if (device/name == "wide")
+			width = "2560"
 	
-	for (device : configuration/devices)
-		if (first)
-			first = false
-		else
-			result = result + ",\n"
-		width = device/width
-		if (width == null)
-			if (device/name == "phone")
-				width = "512"
-			else if (device/name == "tablet")
-				width = "960"
-			else if (device/name == "desktop")
-				width= "1280"
-			else if (device/name == "wide")
-				width = "2560"
-				
-		if (width != null && device/name != null)
-			integer width = width
-			result = result + "\t'" + device/name + "': " + width + "px,"
-			result = result + "\t'below-" + device/name + "': " + (width - 1) + "px,"
-			result = result + "\t'above-" + device/name + "': " + (width + 1) + "px"
-	result = result + "\n);"
-	echo(result)
+	if (width != null && device/name != null)
+		integer width = width
+		result = result + "\t'" + device/name + "': " + width + "px,"
+		result = result + "\t'below-" + device/name + "': " + (width - 1) + "px,"
+		result = result + "\t'above-" + device/name + "': " + (width + 1) + "px"
+result = result + "\n);"
+echo(result)

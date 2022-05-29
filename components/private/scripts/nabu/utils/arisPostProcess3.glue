@@ -23,10 +23,9 @@ findExtensions = lambda
 # find all hidden dimensions etc
 # we include the trailing { to make sure we have a full unique match, not a partial match
 # for instance if a particular rule is simply "more specific", it would match the beginning, but not the end
-hidden = unique(find("(?s)(?:^|})[\s]*([^{]*:is-[^{]+\{)", css))
+hidden = unique(find("(?s)(?:^|})[\s]*([^}{]*:is-[^{]+\{)", css))
 for (single : hidden)
 	replacement = single
-
 	# we replace one item at a time, but there may be multiple items to replace, e.g. this will require two loops:
 	# .is-form .is-this:is-form-component :is-form-label
 	# we don't want to re-find from the css every time as this is too intensive (regex on massive strings...)
