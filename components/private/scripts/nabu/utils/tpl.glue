@@ -3,6 +3,7 @@ staticTarget ?= null
 bundlePath ?= "repository:" + environment("webApplicationId") + ":/private/provided/bundle.json"
 [] directories ?= fragmentResources("public/artifacts")
 autoBundle ?= true
+defaultTemplate ?= true
 
 # get variables if necessary
 inject(scope(1))
@@ -13,13 +14,15 @@ bundles = series(bundlePath)
 
 if (autoBundle)
 	bundles = merge(bundles, fragmentResources("public/bundled/auto-bundle.json"))
+	bundles = merge(bundles, fragmentResources("public/bundled/pre-bundle.json"))
+	bundles = merge(bundles, fragmentResources("public/bundled/post-bundle.json"))
 
 for (bundle : bundles)
 	# resolve included tpls
-	nabu.utils.resolve(target: target, bundlePath: bundle, regex: ".*\.tpl")
+	nabu.utils.resolve(target: target, bundlePath: bundle, regex: ".*\.tpl", defaultTemplate: defaultTemplate)
 	
 	# resolve included "nabu template jsons"
-	nabu.utils.resolve(target: target, bundlePath: bundle, regex: ".*\.npt", print: false)
+	nabu.utils.resolve(target: target, bundlePath: bundle, regex: ".*\.npt", print: false, defaultTemplate: defaultTemplate)
 	
 	# resolve static resources
 	# used to have param: includes: "vendor"

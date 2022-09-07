@@ -5,13 +5,13 @@ devices = series()
 if (size(configuration/devices) > 0)
 	devices = merge(devices, configuration/devices)
 
-if (!devices[name == "phone"])
+if (size(devices[name == "phone"]) == 0)
 	devices = merge(devices, structure(name: "phone"))
-if (!devices[name == "tablet"])
+if (size(devices[name == "tablet"]) == 0)
 	devices = merge(devices, structure(name: "tablet"))
-if (!devices[name == "desktop"])
+if (size(devices[name == "desktop"]) == 0)
 	devices = merge(devices, structure(name: "desktop"))
-if (!devices[name == "wide"])
+if (size(devices[name == "wide"]) == 0)
 	devices = merge(devices, structure(name: "wide"))
 
 result = "$breakpoints: (\n"

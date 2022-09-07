@@ -24,4 +24,5 @@ nabu.utils.resolve(
 	root: false,
 	bundlePath: bundlePath,
 	json: json,
-	rerootBundle: true)
+	rerootBundle: true,
+	defaultTemplate: false)

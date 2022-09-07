@@ -44,6 +44,9 @@ sequence
 	# whether or not the resulting resources from remote bundles should be saved in the hierarchy they are defined in
 	# or alternatively whether they should be redirected to the original root
 	boolean rerootBundle ?= false
+	
+	# Whether you want to template by default
+	boolean defaultTemplate ?= true
 
 # load bundle
 sequence
@@ -332,7 +335,7 @@ resolveResources = method
 								result = structure(result, script())
 							
 						else if (childResolved/target ~ ".*\.tpl")
-							if (resource/template == null || resource/template == true)
+							if ((resource/template == null && defaultTemplate) || resource/template == true)
 								echo(template(replacer(read(childResolved/target)), result))
 							else
 								echo(replacer(read(childResolved/target)))
@@ -340,7 +343,7 @@ resolveResources = method
 							if (allowSass)
 								concatenated = concatenated + template(read(childResolved/target), result) +"\n"
 						else
-							if (resource/template == null || resource/template == true)
+							if ((resource/template == null && defaultTemplate) || resource/template == true)
 								try
 									string childContent = template(read(childResolved/target), result)
 									catch

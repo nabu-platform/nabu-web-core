@@ -2,7 +2,7 @@
 # then we output all the variants, we use :where() if multiple variants with the same name exist across component, otherwise it is at the root
 # then we output all dimensions, we use :where() if multiple dimensions exist with the same name
 
-
+date = date()
 fullContent ?= null
 lambda generator ?= null
 
@@ -20,6 +20,19 @@ mixins = series.resolve(derive(lambda(mixin, structure(
 		body: trim(replace("(?s)^[^{]+\{(.*)\}[^}]*$", "$1", mixin))
 	)), mixins))
 	
+# get the aspects
+aspects = mixins[name ~ ".*_.*_.*--.*"]
+
+# remove them from the overall mixins
+mixins = mixins[name !~ ".*_.*_.*--.*"]
+
+# we don't use the body, no use in enriching it
+#for (aspect : aspects)
+#	aspectName = replace("--.*", "", aspect/name)
+#	applicableMixin = first(mixins[name == /aspectName])
+#	if (applicableMixin != null)
+#		applicableMixin/body = applicableMixin/body + "\n\t" + aspect/body + "\n"
+
 splitter = lambda
 	mixin ?= null
 	split = split("_", mixin/name)
@@ -27,13 +40,14 @@ splitter = lambda
 	parts = structure(
 		component: split[0],
 		dimension: split[1],
+		aspects: aspects[name ~ /mixin/name + "--.*"],
 		option: join("_", offset(2, split)))
 
 mixins = series.resolve(derive(lambda(mixin, structure(
 		mixin,
 		splitter(mixin)
 	)), mixins))
-	
+
 findExtensions = lambda
 	name ?= null
 	# start with the actual extensions
@@ -56,20 +70,28 @@ dimensions = series()
 modifiers = series()
 counting = structure()
 
+# optimize by prehashing
+grouped = group(lambda(x, x/component), mixins)
+
 # generate the base component classes
 for (component : components)
 	# get the default variant (if any)
-	default = first(mixins[component == /component/name && dimension == "variant" && option == "default"])
+	#default = first(mixins[component == /component/name && dimension == "variant" && option == "default"])
+	default = first(grouped[/component/name][dimension == "variant" && option == "default"])
 	
 	# if we have a default, we initiate the component
 	if (default != null)
 		defaultSelector = when(useDefaults && component/name ? defaults, ", " + component/name, "")
 		echo(".is-" + component/name + defaultSelector + " {")
 		echo("\t@include " + default/name + ";")
+		# we want to include aspects as well
+		for (aspect : default/aspects)
+			echo("\t@include " + aspect/name)
 		echo("}")
 	
 	variantNames = series()
-	for (mixin : mixins[component == /component/name])
+	#for (mixin : mixins[component == /component/name])
+	for (mixin : grouped[/component/name])
 		dimension = mixin/dimension
 		
 		if (dimension != "modifier")
@@ -87,7 +109,7 @@ for (component : components)
 				dimension: dimension,
 				option: option,
 				depth: depth)
-	
+				
 			# dedicated dimension
 			if (dimension == "variant")
 				variants = merge(variants, result)
@@ -103,8 +125,9 @@ for (component : components)
 			console("The dimension 'modifier' is reserved and should not be used")
 	
 	# we check for modifiers for each of the variants
-	for (variant : merge(variantNames))
-		for (mixin : mixins[component == /component/name + "-" + /variant && dimension == "modifier"])
+	for (variant : variantNames)
+		#for (mixin : mixins[component == /component/name + "-" + /variant && dimension == "modifier"])
+		for (mixin : grouped[/component/name + "-" + /variant][dimension == "modifier"])
 			option = mixin/option
 			# modifiers don't actually have the name "modifier" in css, so we drop the dimension name
 			# in rare cases it might still conflict with a valid dimension-option composition so we need to keep track of it
@@ -115,7 +138,6 @@ for (component : components)
 				component: component/name,
 				variant: variant,
 				modifier: option))
-
 
 # sort dimensions according to depth
 dimensions = sort(lambda(a, b, a/depth - b/depth), dimensions)
@@ -131,6 +153,9 @@ for (series : series(variants, dimensions))
 			else
 				echo(".is-" + single/dimension + "-" + single/option + " {")
 			echo("\t@include " + single/name + ";")
+			# we want to include aspects as well
+			for (aspect : single/aspects)
+				echo("\t@include " + aspect/name)
 			echo("}")
 
 # we can have modifiers on variants, let's check for those as well

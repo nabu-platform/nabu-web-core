@@ -14,7 +14,9 @@ response.header("Content-Type", "text/css")
 bundles = series(bundlePath)
 
 if (autoBundle)
+	bundles = merge(fragmentResources("public/bundled/pre-bundle.json"), bundles)
 	bundles = merge(bundles, fragmentResources("public/bundled/auto-bundle.json"))
+	bundles = merge(bundles, fragmentResources("public/bundled/post-bundle.json"))
 
 scss = ""
 
@@ -32,10 +34,10 @@ if (file.readable("repository:" + environment("webApplicationId") + ":/public/ar
 for (bundle : bundles)
 	# still load css
 	if (compile)
-		inject(nabu.utils.resolve(target: target, bundlePath: bundle, regex: ".*\.(css)", debug:debug)/result)
+		inject(nabu.utils.resolve(target: target, bundlePath: bundle, regex: ".*\.(css)", debug:debug, defaultTemplate: false)/result)
 		
 	# load scss files
-	scss = scss + "\n" + nabu.utils.resolve(target: target, bundlePath: bundle, regex: ".*\.scss", debug:debug)/concatenated
+	scss = scss + "\n" + nabu.utils.resolve(target: target, bundlePath: bundle, regex: ".*\.scss", debug:debug, defaultTemplate: false)/concatenated
 
 for (directory : directories)
 	# load all the artifacts
@@ -69,7 +71,6 @@ else if (mode == "light-extension")
 	captureEcho()
 	result = nabu.utils.arisGenerate2(scss, function("nabu.utils.arisComponent2"))
 	scss = scss + "\n" + releaseEcho()
-	
 	
 	if (compile)
 		css = sass.compile(scss)
