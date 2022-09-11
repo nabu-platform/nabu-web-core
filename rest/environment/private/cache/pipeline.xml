@@ -1,0 +1,5 @@
+<structure interface="nabu.web.core.rest.environment:implementation" name="pipeline">
+    <structure name="input"/>
+    <structure name="output"/>
+    <field minOccurs="0" name="uptime" type="java.util.Date"/>
+</structure>

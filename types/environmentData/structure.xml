@@ -1,0 +1,4 @@
+<structure name="environmentData">
+    <field name="type" type="java.lang.String"/>
+    <structure definition="java.lang.Object" name="content"/>
+</structure>
