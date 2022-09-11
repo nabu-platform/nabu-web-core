@@ -1,5 +1,8 @@
 <structure name="pipeline">
-    <structure name="input"/>
+    <structure name="input">
+        <field name="webApplicationId" type="java.lang.String"/>
+        <field minOccurs="0" name="language" type="java.lang.String"/>
+    </structure>
     <structure name="output">
         <field name="type" type="java.lang.String"/>
         <structure definition="java.lang.Object" name="content"/>

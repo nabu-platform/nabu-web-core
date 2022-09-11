@@ -198,6 +198,24 @@
 					<from>implementation/id</from>
 					<to>implementationId</to>
 				</steps>
+				<steps xsi:type="be.nabu.libs.services.vm.step.Link"
+						disabled="false"
+						id="e03f8a53-1f72-4780-80ad-26496592c366"
+						mask="false"
+						optional="false"
+						fixedValue="false">
+					<from>input/webApplicationId</from>
+					<to>webApplicationId</to>
+				</steps>
+				<steps xsi:type="be.nabu.libs.services.vm.step.Link"
+						disabled="false"
+						id="29fcb166-b8d7-4553-b393-8450827e9b60"
+						mask="false"
+						optional="false"
+						fixedValue="false">
+					<from>input/language</from>
+					<to>language</to>
+				</steps>
 			</steps>
 			<steps xsi:type="be.nabu.libs.services.vm.step.Link"
 					disabled="false"
