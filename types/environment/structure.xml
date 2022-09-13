@@ -2,8 +2,9 @@
     <field comment="The scheme used" name="scheme" type="java.lang.String"/>
     <field comment="The host name" name="host" type="java.lang.String"/>
     <field comment="The root of the current application" name="root" type="java.lang.String"/>
+    <field comment="The path to store cookies on" name="cookiePath" type="java.lang.String"/>
     <field comment="The default language" minOccurs="0" name="defaultLanguage" type="java.lang.String"/>
     <field comment="Your language choice" minOccurs="0" name="language" type="java.lang.String"/>
-    <field maxOccurs="unbounded" minOccurs="0" name="supportedLanguages" type="java.lang.String"/>
+    <field name="development" type="java.lang.Boolean"/>
     <structure definition="nabu.web.core.types.environmentData" maxOccurs="unbounded" minOccurs="0" name="data"/>
 </structure>

@@ -17,7 +17,7 @@ if (size(devices[name == "wide"]) == 0)
 result = "$breakpoints: (\n"
 first = true
 
-for (device : configuration/devices)
+for (device : devices)
 	if (first)
 		first = false
 	else
@@ -39,4 +39,5 @@ for (device : configuration/devices)
 		result = result + "\t'below-" + device/name + "': " + (width - 1) + "px,"
 		result = result + "\t'above-" + device/name + "': " + (width + 1) + "px"
 result = result + "\n);"
+
 echo(result)

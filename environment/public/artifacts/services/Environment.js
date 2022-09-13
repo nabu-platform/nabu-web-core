@@ -25,8 +25,13 @@ Vue.service("environment", {
 				application.configuration.url = scheme + "://" + host;
 				application.configuration.host = host;
 				application.configuration.root = root;
+				application.configuration.cookiePath = result.cookiePath ? result.cookiePath : root;
 				if (result.language) {
 					application.configuration.applicationLanguage = result.language;
+				}
+				
+				if (result.development) {
+					application.configuration.development = true;
 				}
 
 				// merge it reactively into settings		

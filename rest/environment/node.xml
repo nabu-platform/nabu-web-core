@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<node artifactManager="be.nabu.eai.module.rest.provider.RESTServiceManager" created="2022-09-11T08:49:22.666+02:00" lastModified="2022-09-11T10:35:47.589+02:00" leaf="true" version="22">
+<node artifactManager="be.nabu.eai.module.rest.provider.RESTServiceManager" created="2022-09-11T08:49:22.666+02:00" lastModified="2022-09-12T09:05:50.832+02:00" leaf="true" version="25">
     <environmentId>apollo</environmentId>
     <hidden>false</hidden>
     <properties/>
     <references>nabu.web.core.types.environment</references>
     <references>java.util.Date</references>
+    <references>nabu.utils.Server.property</references>
     <references>nabu.utils.Runtime.uptime</references>
-    <references>nabu.web.application.Services.supportedLanguages</references>
     <references>java.lang.Integer</references>
     <references>nabu.web.core.specifications.environmentData</references>
     <references>nabu.web.application.Services.information</references>

@@ -23,6 +23,11 @@ mixins = series.resolve(derive(lambda(mixin, structure(
 # get the aspects
 aspects = mixins[name ~ ".*_.*_.*--.*"]
 
+aspects = series.resolve(derive(lambda(aspect, structure(
+		aspect,
+		target: replace("--.*", aspect/name)
+	)), aspects))
+
 # remove them from the overall mixins
 mixins = mixins[name !~ ".*_.*_.*--.*"]
 
@@ -60,6 +65,13 @@ findExtensions = lambda
 			break
 		else
 			names = merge(names, childExtensions)
+
+# currently not actively used yet, might disable
+findApplicableAspects = lambda
+	body ?= null
+	hits = find("@include ([\\w_-]+)", body)
+	@return
+	applicable = aspects[name ? /hits]
 
 useDefaults = false
 defaults = series("h1", "h2", "h3", "h4", "h5", "h6", "p", "button")
@@ -156,7 +168,10 @@ for (series : series(variants, dimensions))
 			# we want to include aspects as well
 			for (aspect : single/aspects)
 				echo("\t@include " + aspect/name)
+			for (aspect : findApplicableAspects(single/body))
+				echo("\t@include " + aspect/name)
 			echo("}")
+			
 
 # we can have modifiers on variants, let's check for those as well
 for (modifier : modifiers)
