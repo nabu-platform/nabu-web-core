@@ -1,0 +1,4 @@
+type ?= null
+
+if (type ? series("js", "css", "html"))
+	echo(resource("initial." + type))

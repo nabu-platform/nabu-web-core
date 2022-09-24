@@ -168,8 +168,8 @@ for (series : series(variants, dimensions))
 			# we want to include aspects as well
 			for (aspect : single/aspects)
 				echo("\t@include " + aspect/name)
-			for (aspect : findApplicableAspects(single/body))
-				echo("\t@include " + aspect/name)
+#			for (aspect : findApplicableAspects(single/body))
+#				echo("\t@include " + aspect/name)
 			echo("}")
 			
 
