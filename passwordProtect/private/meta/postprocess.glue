@@ -16,5 +16,5 @@ if (request != null)
 	
 			# a "stable" salt that should still differ per server environment but remain the same within clusters and across web applications (in case a password protect is shared)
 			salt = nabu.utils.Server.getServerGroup()/group
-			response.cookie("password-protection", nabu.utils.Security.hash(salt + "::" + configuration/password, algorithm)/hash, date() + "1 year", path: cookiePath(), httpOnly: true,
+			response.cookie("application-unlock", nabu.utils.Security.hash(salt + "::" + configuration/password, algorithm)/hash, date() + "1 year", path: cookiePath(), httpOnly: true,
 				secure: when(configuration/secureOnly == null, environment("secure"), configuration/secureOnly))

@@ -2,6 +2,9 @@
 <restInterface>
     <method>GET</method>
     <path>/environment.json</path>
+    <useServiceContextAsPermissionContext>false</useServiceContextAsPermissionContext>
+    <useWebApplicationAsPermissionContext>false</useWebApplicationAsPermissionContext>
+    <useProjectAsPermissionContext>false</useProjectAsPermissionContext>
     <output>nabu.web.core.types.environment</output>
     <lenient>true</lenient>
     <webApplicationId>true</webApplicationId>

@@ -2,4 +2,5 @@
     <structure name="input"/>
     <structure name="output"/>
     <field minOccurs="0" name="uptime" type="java.util.Date"/>
+    <field name="development" type="java.lang.Boolean"/>
 </structure>

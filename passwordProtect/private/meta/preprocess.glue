@@ -18,7 +18,7 @@ if (configuration != null && configuration/password != null && requestType != "s
 		response.header("Password-Whitelist", "true")
 		
 	if (!allowed)
-		@cookie password-protection
+		@cookie application-unlock
 		@single
 		password ?= null
 		

@@ -9,7 +9,7 @@ configuration = application.configuration("nabu.web.core.types.passwordProtect")
 applicationName = when(configuration/applicationName != null, configuration/applicationName, "Nabu")
 }}
 		</style>
-		<title>${applicationName} - Unlock Website</title>
+		<title>Unlock Application</title>
 		<meta charset="UTF-8">
 		<script type="application/javascript">
 			function toggleButton() {
@@ -41,13 +41,12 @@ applicationName = when(configuration/applicationName != null, configuration/appl
 			
 			<div class="container">
 				
-				<h1>${applicationName}</h1>
-				<h2>Unlock Website</h2>
+				<h1>Unlock Application</h1>
 				
 				<form method="post" id="login">
 					
 					<label for="password">
-						<input type="password" name="password" placeholder="unlock password" autofocus>
+						<input type="password" name="password" placeholder="Unlock password" autofocus>
 					</label>
 
 					<button class="submit" type="submit">
