@@ -41,9 +41,17 @@ mixins = mixins[name !~ ".*_.*_.*--.*"]
 splitter = lambda
 	mixin ?= null
 	split = split("_", mixin/name)
+	componentParts = split("--", split[0])
+	if (size(componentParts) == 1)
+		themeName = null
+		componentName = componentParts[0]
+	else
+		themeName = componentParts[0]
+		componentName = componentParts[1]
 	@return
 	parts = structure(
-		component: split[0],
+		theme: themeName,
+		component: componentName,
 		dimension: split[1],
 		aspects: aspects[name ~ /mixin/name + "--.*"],
 		option: join("_", offset(2, split)))

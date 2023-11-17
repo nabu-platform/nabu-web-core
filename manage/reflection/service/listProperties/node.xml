@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<node artifactManager="be.nabu.eai.module.rest.provider.RESTServiceManager" created="2022-03-17T12:29:19.139+01:00" lastModified="2023-04-20T10:06:17.977+02:00" leaf="true" version="30">
+    <environmentId>apollo</environmentId>
+    <hidden>false</hidden>
+    <locked>false</locked>
+    <properties/>
+    <references>nabu.web.core.manage.reflection.service.servicePropertyList</references>
+    <references>java.util.Date</references>
+    <references>java.lang.Boolean</references>
+    <references>nabu.utils.types.ParameterDescription</references>
+    <references>java.lang.String</references>
+    <references>nabu.utils.String.conventionize</references>
+    <references>nabu.frameworks.io.crud.channelProvider.types.output</references>
+    <references>java.lang.Integer</references>
+    <references>nabu.utils.reflection.Type.describe</references>
+    <summary>List all the properties for a service</summary>
+    <tags>Reflection</tags>
+</node>

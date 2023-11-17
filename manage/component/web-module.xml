@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<webModule>
+    <webFragments>nabu.web.core.manage.reflection.service.list</webFragments>
+    <webFragments>nabu.web.core.manage.reflection.service.listProperties</webFragments>
+    <audience>MANAGER</audience>
+</webModule>

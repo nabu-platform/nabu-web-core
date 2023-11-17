@@ -1,0 +1,11 @@
+<structure name="pipeline">
+    <structure name="input">
+        <field minOccurs="0" name="properties" type="java.lang.String"/>
+        <field name="serviceId" type="java.lang.String"/>
+        <field minOccurs="0" name="field" type="java.lang.String"/>
+    </structure>
+    <structure name="output">
+        <structure definition="java.lang.Object" minOccurs="0" name="properties"/>
+    </structure>
+    <structure definition="nabu.utils.types.ParameterDescription" minOccurs="0" name="parameter"/>
+</structure>

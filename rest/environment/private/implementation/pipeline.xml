@@ -2,4 +2,7 @@
     <structure name="input"/>
     <structure name="output"/>
     <structure definition="nabu.utils.types.NodeDescription" maxOccurs="unbounded" minOccurs="0" name="implementations"/>
+    <field name="type" type="java.lang.String"/>
+    <structure definition="java.lang.Object" name="content"/>
+    <field minOccurs="0" name="language" type="java.lang.String"/>
 </structure>

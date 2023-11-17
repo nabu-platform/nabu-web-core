@@ -1,0 +1,3 @@
+<structure name="suggestionList">
+    <structure definition="nabu.web.core.manage.reflection.service.suggestion" maxOccurs="unbounded" minOccurs="0" name="results"/>
+</structure>

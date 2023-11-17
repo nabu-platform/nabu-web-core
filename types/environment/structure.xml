@@ -3,8 +3,9 @@
     <field comment="The host name" name="host" type="java.lang.String"/>
     <field comment="The root of the current application" name="root" type="java.lang.String"/>
     <field comment="The path to store cookies on" name="cookiePath" type="java.lang.String"/>
-    <field comment="The default language" minOccurs="0" name="defaultLanguage" type="java.lang.String"/>
-    <field comment="Your language choice" minOccurs="0" name="language" type="java.lang.String"/>
     <field name="development" type="java.lang.Boolean"/>
+    <structure definition="nabu.web.core.specifications.language" minOccurs="0" name="currentLanguage"/>
+    <structure definition="nabu.web.core.specifications.language" maxOccurs="unbounded" minOccurs="0" name="availableLanguages"/>
+    <field minOccurs="0" name="languagePattern" type="java.lang.String"/>
     <structure definition="nabu.web.core.types.environmentData" maxOccurs="unbounded" minOccurs="0" name="data"/>
 </structure>

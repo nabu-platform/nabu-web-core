@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<node artifactManager="be.nabu.eai.module.services.vm.VMServiceManager" created="2023-05-04T09:35:26.023+02:00" lastModified="2023-05-04T13:41:18.241+02:00" leaf="true" version="10">
+    <environmentId>apollo</environmentId>
+    <hidden>false</hidden>
+    <locked>false</locked>
+    <properties/>
+    <references>nabu.utils.String.replace</references>
+    <references>java.lang.Long</references>
+    <references>nabu.utils.String.substring</references>
+    <references>nabu.utils.Uri.toComponents</references>
+    <references>java.lang.String</references>
+    <references>java.net.URI</references>
+    <references>nabu.utils.String.split</references>
+    <references>nabu.utils.Uri.getQueryProperties</references>
+</node>

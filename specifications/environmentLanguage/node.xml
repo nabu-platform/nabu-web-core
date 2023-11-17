@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<node artifactManager="be.nabu.eai.module.services.iface.ServiceInterfaceManager" created="2023-05-03T16:34:09.012+02:00" lastModified="2023-05-04T09:27:50.815+02:00" leaf="true" version="7">
+    <environmentId>apollo</environmentId>
+    <hidden>false</hidden>
+    <locked>false</locked>
+    <properties/>
+    <references>java.lang.String</references>
+    <references>be.nabu.libs.http.api.HTTPRequest</references>
+    <references>nabu.web.core.specifications.language</references>
+</node>

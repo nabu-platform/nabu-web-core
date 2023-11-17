@@ -3,55 +3,10 @@
 		id="7530487f-dca7-4047-a4f0-453b66c10a8c"
 		lineNumber="1">
 	<steps xsi:type="be.nabu.libs.services.vm.step.Map"
-			comment="Check development setting"
-			disabled="false"
-			id="7d5f435d-78b7-4483-8a24-aec55ec669a1"
-			lineNumber="2">
-		<steps xsi:type="be.nabu.libs.services.vm.step.Invoke"
-				disabled="false"
-				id="187fb210-2051-4a80-b0ed-7a247c05d720"
-				serviceId="nabu.utils.Server.property"
-				resultName="result5b0517e8d9b048d1821116e700f35d55"
-				temporaryMapping="true"
-				x="56"
-				y="66"
-				invocationOrder="0"
-				asynchronous="false"
-				recache="false">
-			<steps xsi:type="be.nabu.libs.services.vm.step.Link"
-					disabled="false"
-					id="e4bae2af-c12f-42ed-9806-7c8352ae0353"
-					mask="false"
-					optional="false"
-					fixedValue="true">
-				<from>development</from>
-				<to>key</to>
-			</steps>
-			<steps xsi:type="be.nabu.libs.services.vm.step.Link"
-					disabled="false"
-					id="03dd6aef-5cc2-46ce-947b-7fd2b102d461"
-					mask="false"
-					optional="false"
-					fixedValue="true">
-				<from>false</from>
-				<to>defaultValue</to>
-			</steps>
-		</steps>
-		<steps xsi:type="be.nabu.libs.services.vm.step.Link"
-				disabled="false"
-				id="7a8c6102-b3bb-43da-a8c7-dac6069dd0ef"
-				mask="false"
-				optional="false"
-				fixedValue="false">
-			<from>result5b0517e8d9b048d1821116e700f35d55/value</from>
-			<to>development</to>
-		</steps>
-	</steps>
-	<steps xsi:type="be.nabu.libs.services.vm.step.Map"
 			comment="Strip millisecond precision as it is not available in frontend header"
 			disabled="false"
 			id="320ca40b-fa27-4c8a-b8f1-9731c5b17a29"
-			lineNumber="3">
+			lineNumber="2">
 		<steps xsi:type="be.nabu.libs.services.vm.step.Invoke"
 				disabled="false"
 				id="d40dfbc4-dff3-4d59-b989-fbe1d7e74a56"
@@ -138,7 +93,7 @@
 			comment="Check if there is no last modified or if the last modified is before the last server restart"
 			disabled="false"
 			id="7b888e0b-ff42-42a2-bb8a-1803c39d86de"
-			lineNumber="4">
+			lineNumber="3">
 		<steps xsi:type="be.nabu.libs.services.vm.step.Link"
 				disabled="false"
 				id="b38cdfd7-5be0-479d-a304-e20f429408b9"
@@ -152,9 +107,9 @@
 	<steps xsi:type="be.nabu.libs.services.vm.step.Map"
 			comment="If in development, always set to changed"
 			disabled="false"
+			features="DEV"
 			id="37562f8d-81e0-4d33-8f49-ad4bfbabb11e"
-			label="development"
-			lineNumber="5">
+			lineNumber="4">
 		<steps xsi:type="be.nabu.libs.services.vm.step.Link"
 				disabled="false"
 				id="a738aafc-01b9-4cba-9ed2-120d15081dfa"
@@ -163,6 +118,135 @@
 				fixedValue="true">
 			<from>true</from>
 			<to>output/hasChanged</to>
+		</steps>
+	</steps>
+	<steps xsi:type="be.nabu.libs.services.vm.step.Sequence"
+			comment="Check the etag to see if we switched language or the language options have changed"
+			disabled="false"
+			id="85a54fb34df840c7991d61d1faf9008a"
+			label="!output/hasChanged"
+			lineNumber="5">
+		<steps xsi:type="be.nabu.libs.services.vm.step.Map"
+				disabled="false"
+				id="72399d93b6834aa6948b54cb70d3ccb4"
+				lineNumber="6">
+			<steps xsi:type="be.nabu.libs.services.vm.step.Invoke"
+					disabled="false"
+					id="164df84ef99c4f93b0fbefd204f3ca49"
+					serviceId="nabu.web.core.services.environment.getLanguage"
+					resultName="resultac6ebef3173c4f75be45636134b20595"
+					temporaryMapping="true"
+					x="30"
+					y="30"
+					invocationOrder="0"
+					asynchronous="false"
+					recache="false">
+				<steps xsi:type="be.nabu.libs.services.vm.step.Link"
+						disabled="false"
+						id="361dd2ba5b794c4c9f2b5fd84e892f9c"
+						mask="false"
+						optional="false"
+						fixedValue="false">
+					<from>input/configuration</from>
+					<to>configuration</to>
+				</steps>
+				<steps xsi:type="be.nabu.libs.services.vm.step.Link"
+						disabled="false"
+						id="b079f8790f8241fe8fdbd730a3a80386"
+						mask="false"
+						optional="false"
+						fixedValue="false">
+					<from>input/webApplicationId</from>
+					<to>webApplicationId</to>
+				</steps>
+				<steps xsi:type="be.nabu.libs.services.vm.step.Link"
+						disabled="false"
+						id="f93aa6911ca24bf485c18fe303b8f8ea"
+						mask="false"
+						optional="false"
+						fixedValue="false">
+					<from>input/request</from>
+					<to>request</to>
+				</steps>
+			</steps>
+			<steps xsi:type="be.nabu.libs.services.vm.step.Link"
+					disabled="false"
+					id="172757a745a642478fc9a1347eb2e3e9"
+					mask="false"
+					optional="false"
+					fixedValue="false">
+				<from>resultac6ebef3173c4f75be45636134b20595/currentLanguage</from>
+				<to>currentLanguage</to>
+			</steps>
+			<steps xsi:type="be.nabu.libs.services.vm.step.Link"
+					disabled="false"
+					id="d9514db4da9648bd83adb9c483ec8cbe"
+					mask="false"
+					optional="false"
+					fixedValue="false">
+				<from>resultac6ebef3173c4f75be45636134b20595/availableLanguages</from>
+				<to>availableLanguages</to>
+			</steps>
+		</steps>
+		<steps xsi:type="be.nabu.libs.services.vm.step.Map"
+				comment="Calculate etag"
+				disabled="false"
+				id="052f011609e74fe3816193d657a64ca0"
+				lineNumber="7">
+			<steps xsi:type="be.nabu.libs.services.vm.step.Invoke"
+					disabled="false"
+					id="feec3dbd0cfd48a1aa03eee3c692559f"
+					serviceId="nabu.web.core.services.environment.getEtag"
+					resultName="resultc3965499d9e146479da33cd08090d348"
+					temporaryMapping="true"
+					x="65"
+					y="66"
+					invocationOrder="0"
+					asynchronous="false"
+					recache="false">
+				<steps xsi:type="be.nabu.libs.services.vm.step.Link"
+						disabled="false"
+						id="e9844a7d7ab948fdab932eaff5e45946"
+						mask="false"
+						optional="false"
+						fixedValue="false">
+					<from>currentLanguage</from>
+					<to>currentLanguage</to>
+				</steps>
+				<steps xsi:type="be.nabu.libs.services.vm.step.Link"
+						disabled="false"
+						id="08c35c62bc354b3ea4b5c3f5ae71ae95"
+						mask="false"
+						optional="false"
+						fixedValue="false">
+					<from>availableLanguages</from>
+					<to>availableLanguages</to>
+				</steps>
+			</steps>
+			<steps xsi:type="be.nabu.libs.services.vm.step.Link"
+					disabled="false"
+					id="e0261f1999f5479992308b5bee136523"
+					mask="false"
+					optional="false"
+					fixedValue="false">
+				<from>resultc3965499d9e146479da33cd08090d348/etag</from>
+				<to>etag</to>
+			</steps>
+		</steps>
+		<steps xsi:type="be.nabu.libs.services.vm.step.Map"
+				comment="Set changed based on etag"
+				disabled="false"
+				id="fcbbffeca2e24ce783a045ebf22fb2b9"
+				lineNumber="8">
+			<steps xsi:type="be.nabu.libs.services.vm.step.Link"
+					disabled="false"
+					id="8a0413f25b00487abdba36d550cd3ee3"
+					mask="false"
+					optional="false"
+					fixedValue="true">
+				<from>=input/clientCache/etag != etag</from>
+				<to>output/hasChanged</to>
+			</steps>
 		</steps>
 	</steps>
 </sequence>

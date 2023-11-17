@@ -1,0 +1,10 @@
+<structure name="pipeline">
+    <structure name="input">
+        <field name="interfaceId" type="java.lang.String"/>
+        <field minOccurs="0" name="q" type="java.lang.String"/>
+    </structure>
+    <structure name="output">
+        <structure definition="nabu.web.core.manage.reflection.service.suggestion" maxOccurs="unbounded" minOccurs="0" name="suggestions"/>
+    </structure>
+    <structure definition="nabu.utils.types.NodeDescription" maxOccurs="unbounded" minOccurs="0" name="implementations"/>
+</structure>

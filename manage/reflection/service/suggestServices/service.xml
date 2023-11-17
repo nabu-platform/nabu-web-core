@@ -1,0 +1,71 @@
+<sequence xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+		disabled="false"
+		id="95b1d4fc-6d83-47a3-a7c6-d7ffc4092098"
+		lineNumber="1">
+	<steps xsi:type="be.nabu.libs.services.vm.step.Map"
+			disabled="false"
+			id="7b63e24d-8737-4165-a809-e0a7e8455e3c"
+			lineNumber="2">
+		<steps xsi:type="be.nabu.libs.services.vm.step.Invoke"
+				disabled="false"
+				id="808feecd-fe91-4a5e-9418-303e985f901f"
+				serviceId="nabu.utils.reflection.Service.listImplementations"
+				resultName="resulta80abc634d014eeeb270483b340d1877"
+				temporaryMapping="true"
+				x="63"
+				y="42"
+				invocationOrder="0"
+				asynchronous="false"
+				recache="false">
+			<steps xsi:type="be.nabu.libs.services.vm.step.Link"
+					disabled="false"
+					id="a0807d71c59640ecbb7e7f1929f0b719"
+					mask="false"
+					optional="false"
+					fixedValue="false">
+				<from>input/interfaceId</from>
+				<to>interfaceId</to>
+			</steps>
+		</steps>
+		<steps xsi:type="be.nabu.libs.services.vm.step.Link"
+				disabled="false"
+				id="82cc221e-1c49-4b27-b363-6b4c5d09ccb2"
+				mask="false"
+				optional="false"
+				fixedValue="false">
+			<from>resulta80abc634d014eeeb270483b340d1877/implementations</from>
+			<to>implementations</to>
+		</steps>
+	</steps>
+	<steps xsi:type="be.nabu.libs.services.vm.step.For"
+			disabled="false"
+			id="9e5ad22e-9f85-4168-92a9-34c833a52029"
+			lineNumber="3"
+			variable="implementation"
+			into="output/suggestions">
+		<steps xsi:type="be.nabu.libs.services.vm.step.Map"
+				disabled="false"
+				id="8ba2513f-538c-4a58-bb90-d91156c77c41"
+				lineNumber="4">
+			<steps xsi:type="be.nabu.libs.services.vm.step.Link"
+					disabled="false"
+					id="f6a7cc75-d004-4058-9290-959aca34549f"
+					mask="false"
+					optional="false"
+					fixedValue="false">
+				<from>implementation/id</from>
+				<to>output/suggestions[0]/label</to>
+			</steps>
+			<steps xsi:type="be.nabu.libs.services.vm.step.Link"
+					disabled="false"
+					id="997b2921-4f95-4910-9f4d-757f122c441b"
+					mask="false"
+					optional="false"
+					fixedValue="false">
+				<from>implementation/id</from>
+				<to>output/suggestions[0]/value</to>
+			</steps>
+		</steps>
+		<query>implementations[/input/q == null || id ~ "(?i).*" + /input/q + ".*"]</query>
+	</steps>
+</sequence>

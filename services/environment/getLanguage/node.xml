@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<node artifactManager="be.nabu.eai.module.services.vm.VMServiceManager" created="2023-05-04T12:53:09.109+02:00" lastModified="2023-05-04T12:54:28.328+02:00" leaf="true" version="5">
+    <environmentId>apollo</environmentId>
+    <hidden>false</hidden>
+    <locked>false</locked>
+    <properties/>
+    <references>nabu.web.core.types.environmentConfiguration</references>
+    <references>nabu.web.core.specifications.language</references>
+    <references>nabu.web.core.services.environment.getLanguageFromPattern</references>
+    <references>be.nabu.libs.http.api.HTTPRequest</references>
+    <references>nabu.data.mime.Services.getHeader</references>
+    <references>nabu.data.mime.Services.getFullHeaderValue</references>
+    <references>nabu.web.core.specifications.environmentLanguage</references>
+    <references>nabu.utils.reflection.Service.listImplementations</references>
+    <references>java.lang.String</references>
+</node>

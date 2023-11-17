@@ -1,0 +1,49 @@
+<sequence xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+		disabled="false"
+		id="2349de50f7804132b173f6888f7e858d"
+		lineNumber="1">
+	<steps xsi:type="be.nabu.libs.services.vm.step.Map"
+			disabled="false"
+			id="dd69914ea21040bb945fce5aaae33d86"
+			lineNumber="2">
+		<steps xsi:type="be.nabu.libs.services.vm.step.Invoke"
+				disabled="false"
+				id="3fc9409323f149ecb37a4b90588cb477"
+				serviceId="nabu.web.core.manage.reflection.service.suggestServices"
+				resultName="result9dea38084ad34514909b8f58396ed73e"
+				temporaryMapping="true"
+				x="238"
+				y="86"
+				invocationOrder="0"
+				asynchronous="false"
+				recache="false">
+			<steps xsi:type="be.nabu.libs.services.vm.step.Link"
+					disabled="false"
+					id="6f5d35084cdb45039ba4808ad0ac3f61"
+					mask="false"
+					optional="false"
+					fixedValue="false">
+				<from>input/path/interfaceId</from>
+				<to>interfaceId</to>
+			</steps>
+			<steps xsi:type="be.nabu.libs.services.vm.step.Link"
+					disabled="false"
+					id="4cd4844c6bfa4c06bb9fe69f24167a82"
+					mask="false"
+					optional="false"
+					fixedValue="false">
+				<from>input/query/q</from>
+				<to>q</to>
+			</steps>
+		</steps>
+		<steps xsi:type="be.nabu.libs.services.vm.step.Link"
+				disabled="false"
+				id="95cec1b2c55743a5a88347beaf878969"
+				mask="false"
+				optional="false"
+				fixedValue="false">
+			<from>result9dea38084ad34514909b8f58396ed73e/suggestions</from>
+			<to>output/content/results</to>
+		</steps>
+	</steps>
+</sequence>

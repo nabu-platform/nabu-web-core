@@ -1,0 +1,12 @@
+<structure name="pipeline">
+    <structure name="input">
+        <field name="languagePattern" type="java.lang.String"/>
+        <field name="uri" type="java.net.URI"/>
+    </structure>
+    <structure name="output">
+        <field minOccurs="0" name="language" type="java.lang.String"/>
+    </structure>
+    <field maxOccurs="unbounded" minOccurs="0" name="parts" type="java.lang.String"/>
+    <field name="position" type="java.lang.Long"/>
+    <field minOccurs="0" name="name" type="java.lang.String"/>
+</structure>

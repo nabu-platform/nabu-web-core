@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<node artifactManager="be.nabu.eai.module.services.vm.VMServiceManager" created="2023-05-03T16:43:43.554+02:00" lastModified="2023-05-03T16:45:28.300+02:00" leaf="true" version="3">
+    <environmentId>apollo</environmentId>
+    <hidden>false</hidden>
+    <locked>false</locked>
+    <properties/>
+    <references>nabu.utils.String.join</references>
+    <references>nabu.web.core.specifications.language</references>
+    <references>java.lang.String</references>
+    <references>nabu.utils.Security.hash</references>
+</node>

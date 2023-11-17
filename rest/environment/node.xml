@@ -1,18 +1,26 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<node artifactManager="be.nabu.eai.module.rest.provider.RESTServiceManager" created="2022-09-11T08:49:22.666+02:00" lastModified="2022-11-15T11:12:32.471+01:00" leaf="true" version="28">
+<node artifactManager="be.nabu.eai.module.rest.provider.RESTServiceManager" created="2022-09-11T08:49:22.666+02:00" lastModified="2023-05-10T09:02:32.236+02:00" leaf="true" version="64">
     <environmentId>apollo</environmentId>
     <hidden>false</hidden>
+    <locked>false</locked>
     <properties/>
+    <references>nabu.web.core.types.environmentConfiguration</references>
     <references>nabu.web.core.types.environment</references>
     <references>java.util.Date</references>
     <references>nabu.utils.Server.property</references>
     <references>nabu.utils.Runtime.uptime</references>
+    <references>nabu.web.core.services.environment.getLanguage</references>
     <references>java.lang.Integer</references>
     <references>nabu.web.core.specifications.environmentData</references>
     <references>nabu.web.application.Services.information</references>
+    <references>nabu.web.core.specifications.language</references>
+    <references>nabu.utils.Object.first</references>
+    <references>be.nabu.libs.http.api.HTTPRequest</references>
     <references>java.lang.Boolean</references>
     <references>nabu.utils.reflection.Service.listImplementations</references>
+    <references>java.lang.Object</references>
     <references>java.lang.String</references>
+    <references>nabu.web.core.services.environment.getEtag</references>
     <references>nabu.utils.Date.toTimestamp</references>
     <references>nabu.utils.Date.fromTimestamp</references>
     <references>nabu.utils.types.NodeDescription</references>

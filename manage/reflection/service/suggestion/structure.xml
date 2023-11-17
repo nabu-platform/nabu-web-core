@@ -1,0 +1,4 @@
+<structure name="suggestion">
+    <field name="value" type="java.lang.String"/>
+    <field name="label" type="java.lang.String"/>
+</structure>

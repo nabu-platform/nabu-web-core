@@ -1,0 +1,16 @@
+<structure name="pipeline">
+    <structure name="input">
+        <structure definition="nabu.web.core.types.environmentConfiguration" name="configuration"/>
+        <field name="webApplicationId" type="java.lang.String"/>
+        <structure definition="be.nabu.libs.http.api.HTTPRequest" name="request"/>
+    </structure>
+    <structure name="output">
+        <structure definition="nabu.web.core.specifications.language" minOccurs="0" name="currentLanguage"/>
+        <structure definition="nabu.web.core.specifications.language" maxOccurs="unbounded" minOccurs="0" name="availableLanguages"/>
+    </structure>
+    <field minOccurs="0" name="referer" type="java.lang.String"/>
+    <field minOccurs="0" name="hardcodedLanguage" type="java.lang.String"/>
+    <field minOccurs="0" name="suggestLanguage" type="java.lang.String"/>
+    <field minOccurs="0" name="requestLanguage" type="java.lang.String"/>
+    <field comment="The service id that implements the language selection procedure" minOccurs="0" name="environmentLanguageProvider" type="java.lang.String"/>
+</structure>

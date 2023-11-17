@@ -1,0 +1,10 @@
+<structure name="pipeline">
+    <structure name="input">
+        <structure definition="nabu.web.core.specifications.language" minOccurs="0" name="currentLanguage"/>
+        <structure definition="nabu.web.core.specifications.language" maxOccurs="unbounded" minOccurs="0" name="availableLanguages"/>
+    </structure>
+    <structure name="output">
+        <field minOccurs="0" name="etag" type="java.lang.String"/>
+    </structure>
+    <field minOccurs="0" name="languageJoin" type="java.lang.String"/>
+</structure>

@@ -1,0 +1,12 @@
+<structure name="pipeline">
+    <structure name="input">
+        <field name="webApplicationId" type="java.lang.String"/>
+        <structure definition="be.nabu.libs.http.api.HTTPRequest" name="request"/>
+        <field comment="If we somehow have more knowledge about the language that should be active." minOccurs="0" name="requestLanguage" type="java.lang.String"/>
+        <field comment="If we have a suggestion in case no definitive language can be chosen" minOccurs="0" name="suggestLanguage" type="java.lang.String"/>
+    </structure>
+    <structure name="output">
+        <structure definition="nabu.web.core.specifications.language" minOccurs="0" name="currentLanguage"/>
+        <structure definition="nabu.web.core.specifications.language" maxOccurs="unbounded" minOccurs="0" name="availableLanguages"/>
+    </structure>
+</structure>

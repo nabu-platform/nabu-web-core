@@ -1,0 +1,48 @@
+userAgent ?= request.userAgent()
+
+botRegexes = series()
+# ------------------------- GOOGLE -----------------------------
+# use https://www.google.com/webmasters/tools/googlebot-fetch?pli=1 to debug
+# google (multiple search bots)
+botRegexes = merge(botRegexes, "(?i).*Googlebot.*")
+
+# google ads
+botRegexes = merge(botRegexes, 
+	"(?i).*AdsBot.*",
+	"(?i).*Mediapartners-Google.*",
+	"(?i).*developers.google.com.*")
+
+# -------------------------- MICROSOFT ------------------------
+# https://www.bing.com/toolbox/webmaster/
+botRegexes = merge(botRegexes, "(?i).*Bingbot.*")
+		
+# -------------------------- LINKEDIN -------------------------
+botRegexes = merge(botRegexes, "(?i).*LinkedInBot.*")
+		
+# -------------------------- TWITTER -------------------------
+botRegexes = merge(botRegexes, "(?i).*TwitterBot.*")
+		
+# -------------------------- PINTEREST -------------------------
+botRegexes = merge(botRegexes, "(?i).*Pinterestbot.*")
+		
+# -------------------------- YAHOO ----------------------------
+botRegexes = merge(botRegexes, "(?i).*Slurp.*")
+		
+# -------------------------- OTHER ----------------------------
+botRegexes = merge(botRegexes, 
+	"(?i).*DuckDuckBot.*",
+	"(?i).*Baiduspider.*",
+	"(?i).*YandexBot.*",
+	"(?i).*Sogou.*",
+	"(?i).*Exabot.*",
+	"(?i).*facebook.com.*",
+	"(?i).*crawler@alexa.com.*")
+		
+# catch all
+botRegexes = merge(botRegexes, "(?i).*(bot|googlebot|crawler|spider|robot|crawling).*")
+		
+isBot = false
+for (botRegex : botRegexes)
+	if (!isBot && userAgent ~ botRegex)
+		isBot = true
+		

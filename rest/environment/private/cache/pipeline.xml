@@ -2,5 +2,12 @@
     <structure name="input"/>
     <structure name="output"/>
     <field minOccurs="0" name="uptime" type="java.util.Date"/>
-    <field name="development" type="java.lang.Boolean"/>
+    <field comment="The service id that implements the language selection procedure" minOccurs="0" name="environmentLanguageProvider" type="java.lang.String"/>
+    <structure definition="nabu.web.core.specifications.language" minOccurs="0" name="currentLanguage"/>
+    <structure definition="nabu.web.core.specifications.language" maxOccurs="unbounded" minOccurs="0" name="availableLanguages"/>
+    <field minOccurs="0" name="etag" type="java.lang.String"/>
+    <field name="hardcodedLanguage" type="java.lang.String"/>
+    <field name="requestLanguage" type="java.lang.String"/>
+    <field name="suggestLanguage" type="java.lang.String"/>
+    <field name="referer" type="java.lang.String"/>
 </structure>

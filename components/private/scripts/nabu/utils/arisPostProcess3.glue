@@ -87,9 +87,16 @@ for (single : hidden)
 		allVariants = series()
 		for (component : componentSelectors)
 			# we want to check for variants of that component that embed the dimension
-			applicableVariants = mixins[name ~ /component + "-variant-.*" && body ~ "(?s).*@include[\s]+[\w-]+-" + /dimension + "[\s]*;.*"]/name
+			# we need to replace the _ with - in the body because you type the resolved class ":is-color-red" for example rather than ":is-color_red"
+			# in the future we might want to change this syntax
+			# to be forwards compatible with potential switch to underscores, we also replace the dimension
+			# this _can_ lead to false matches if a dimension + option is not unique when underscores are replaced with dashes
+			# for instance spacing_horizontal-large and spacing-horizontal_large
+			# however, this should not occur
+			dimension = replace("_", "-", dimension)
+			applicableVariants = mixins[name ~ /component + "_variant_.*" && replace("_", "-", body) ~ "(?s).*@include[\s]+[\w-]+-" + /dimension + "[\s]*;.*"]/name
 			# we want to remove the name of the component and just retain ".is-variant-something"
-			applicableVariants = replace(".*-(variant-.*)", "$1", applicableVariants)
+			applicableVariants = replace(".*_(variant_.*)", "$1", applicableVariants)
 			allVariants = unique(merge(allVariants, applicableVariants))
 			
 		# we avoid the more complex :is() selector if it is not needed
