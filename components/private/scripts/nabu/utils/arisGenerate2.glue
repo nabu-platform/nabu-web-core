@@ -21,13 +21,25 @@ mixins = series.resolve(derive(lambda(mixin, structure(
 	)), mixins))
 	
 # get the aspects
-aspects = mixins[name ~ ".*_.*_.*--.*"]
+aspects = mixins[name ~ ".*_.*_.*---.*"]
 
 aspects = series.resolve(derive(lambda(aspect, structure(
 		aspect,
-		target: replace("--.*", aspect/name)
+		target: replace("(.*_.*_.*)---.*", "$1", aspect/name)
 	)), aspects))
 
+# remove them from the overall mixins
+mixins = mixins[name !~ ".*_.*_.*---.*"]
+	
+# get the states
+states = mixins[name ~ ".*_.*_.*--.*"]
+states = series.resolve(derive(lambda(state, structure(
+		state,
+		target: replace("(.*_.*_.*)--.*", "$1", state/name),
+		state: replace(".*_.*_.*--(.*)", "$1", state/name),
+		aspects: aspects[target == /state/name]
+	)), states))
+	
 # remove them from the overall mixins
 mixins = mixins[name !~ ".*_.*_.*--.*"]
 
@@ -53,7 +65,8 @@ splitter = lambda
 		theme: themeName,
 		component: componentName,
 		dimension: split[1],
-		aspects: aspects[name ~ /mixin/name + "--.*"],
+		aspects: aspects[target = /mixin/name],
+		states: states[target = /mixin/name],
 		option: join("_", offset(2, split)))
 
 mixins = series.resolve(derive(lambda(mixin, structure(
@@ -92,6 +105,15 @@ counting = structure()
 
 # optimize by prehashing
 grouped = group(lambda(x, x/component), mixins)
+
+printMixin = lambda
+	selector ?= null
+	mixin ?= null
+	echo(selector + " {")
+	echo("\t@include " + mixin/name + ";")
+	for (aspect : mixin/aspects)
+		echo("\t@include " + aspect/name + ";")
+	echo("}")
 
 # generate the base component classes
 for (component : components)
@@ -163,7 +185,7 @@ for (component : components)
 dimensions = sort(lambda(a, b, a/depth - b/depth), dimensions)
 
 # we want the same logic for both variants and dimensions (but in that specific order), might as well do it like this...
-for (series : series(variants, dimensions))
+for (series : merge(variants, dimensions))
 	for (single : series)
 		# the default option is reserved
 		if (single/dimension != "variant" || single/option != "default")
