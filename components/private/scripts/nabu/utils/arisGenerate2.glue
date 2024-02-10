@@ -106,14 +106,26 @@ counting = structure()
 # optimize by prehashing
 grouped = group(lambda(x, x/component), mixins)
 
+written = series()
+# incredibly much faster than merging and persisting with a method because the merge becomes ever slower
+addWritten = function("add(1)", written)
+
 printMixin = lambda
 	selector ?= null
 	mixin ?= null
-	echo(selector + " {")
-	echo("\t@include " + mixin/name + ";")
-	for (aspect : mixin/aspects)
-		echo("\t@include " + aspect/name + ";")
-	echo("}")
+	if (selector !? written)
+		addWritten(selector)
+		echo(selector + " {")
+		echo("\t@include " + mixin/name + ";")
+		for (aspect : mixin/aspects)
+			echo("\t@include " + aspect/name + ";")
+		echo("}")
+		# states have the same selector as the original but the last ".is-[..]" should be appended by the state
+		# because this is always at the end, it should be fine...?
+		for (state : mixin/states)
+			echo(selector + ":where(.is-" + state/state + ") {")
+			echo("\t@include " + state/name + ";")
+			echo("}")
 
 # generate the base component classes
 for (component : components)
@@ -124,13 +136,8 @@ for (component : components)
 	# if we have a default, we initiate the component
 	if (default != null)
 		defaultSelector = when(useDefaults && component/name ? defaults, ", " + component/name, "")
-		echo(".is-" + component/name + defaultSelector + " {")
-		echo("\t@include " + default/name + ";")
-		# we want to include aspects as well
-		for (aspect : default/aspects)
-			echo("\t@include " + aspect/name)
-		echo("}")
-	
+		printMixin(".is-" + component/name + defaultSelector, default)
+
 	variantNames = series()
 	#for (mixin : mixins[component == /component/name])
 	for (mixin : grouped[/component/name])
@@ -191,30 +198,19 @@ for (series : merge(variants, dimensions))
 		if (single/dimension != "variant" || single/option != "default")
 			# if we have multiple parts with the same name, we have to use a where() to specify further
 			if (counting[/single/dimension + "-" + /single/option] > 1)
-				echo(":where(:is-" + single/component + ").is-" + single/dimension + "-" + single/option + " {")
+				printMixin(":where(:is-" + single/component + ").is-" + single/dimension + "-" + single/option, single)
 			else
-				echo(".is-" + single/dimension + "-" + single/option + " {")
-			echo("\t@include " + single/name + ";")
-			# we want to include aspects as well
-			for (aspect : single/aspects)
-				echo("\t@include " + aspect/name)
-#			for (aspect : findApplicableAspects(single/body))
-#				echo("\t@include " + aspect/name)
-			echo("}")
-			
+				printMixin(".is-" + single/dimension + "-" + single/option, single)
 
 # we can have modifiers on variants, let's check for those as well
 for (modifier : modifiers)
 	if (modifier/variant == "default")
 		if (counting[/modifier/modifier] > 1)
-			echo(":where(:is-" + modifier/component + ").is-" + modifier/modifier + " {")
+			printMixin(":where(:is-" + modifier/component + ").is-" + modifier/modifier, modifier)
 		else
-			echo(".is-" + modifier/modifier + " {")
+			printMixin(".is-" + modifier/modifier, modifier)
 	else
 		if (counting[/modifier/modifier] > 1)
-			echo(":where(:is-" + modifier/component + ".is-variant-" + modifier/variant + ").is-" + modifier/modifier + " {")
+			printMixin(":where(:is-" + modifier/component + ".is-variant-" + modifier/variant + ").is-" + modifier/modifier, modifier)
 		else
-			echo(".is-" + modifier/modifier + " {")
-			
-	echo("\t@include " + modifier/name + ";")
-	echo("}")
+			printMixin(".is-" + modifier/modifier, modifier)

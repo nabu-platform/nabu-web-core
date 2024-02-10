@@ -12,7 +12,9 @@ response.header("Content-Type", "application/javascript")
 bundles = series(bundlePath)
 
 if (autoBundle)
+	bundles = merge(fragmentResources("public/bundled/pre-bundle.json"), bundles)
 	bundles = merge(bundles, fragmentResources("public/bundled/auto-bundle.json"))
+	bundles = merge(bundles, fragmentResources("public/bundled/post-bundle.json"))
 
 for (bundle : bundles)
 	# resolve the javascript files

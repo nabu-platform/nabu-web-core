@@ -5,6 +5,6 @@
     </structure>
     <structure name="output">
         <field name="type" type="java.lang.String"/>
-        <structure definition="java.lang.Object" name="content"/>
+        <structure collectionCrudProvider="odata" collectionName="teamsTemplates" definition="java.lang.Object" minOccurs="0" name="content"/>
     </structure>
 </structure>
