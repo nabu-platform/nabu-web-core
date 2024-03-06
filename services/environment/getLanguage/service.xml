@@ -255,7 +255,7 @@
 						comment="If it is a query based language parameter, it is a suggestion, otherwise it is a hard requirement"
 						disabled="false"
 						id="2e8b5540fef3460cbf97631f4143c686"
-						label="input/configuration/languagePattern ~ &quot;^\?.*$&quot;"
+						label="input/configuration/languagePattern ~ &quot;^\?.*$&quot; &amp;&amp; input/configuration/enforceQueryLanguageChoice != true"
 						lineNumber="11">
 					<steps xsi:type="be.nabu.libs.services.vm.step.Link"
 							disabled="false"
