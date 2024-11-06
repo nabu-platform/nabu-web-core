@@ -31,6 +31,7 @@ if (file.readable("repository:" + environment("webApplicationId") + ":/public/ar
 	string content = file.read("repository:" + environment("webApplicationId") + ":/public/aris/variables.scss")
 	scss = scss + "\n" + content
 
+captureEcho()
 for (bundle : bundles)
 	# still load css
 	if (compile)
@@ -46,6 +47,9 @@ for (directory : directories)
 			scss = scss + "\n" + template(read(directory + "/" + file))
 		else if (file ~ ".*\.css" && compile)
 			echo("\n", template(read(directory + "/" + file)))
+nativeCss = releaseEcho()
+
+
 
 # generate full extensions
 if (mode == "full-extension")
@@ -90,3 +94,6 @@ else if (mode == "compatible-unique")
 
 if (compile)
 	echo(css)
+	# things like @import statements have to be at the top of the css to work
+	# because you will usually define those in your theme (which is in scss), we don't want the native css (e.g. font awesome etc) to be at the very top
+	echo(nativeCss)
