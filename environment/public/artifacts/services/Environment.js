@@ -72,6 +72,21 @@ Vue.service("environment", {
 		applyLanguage: function(language) {
 			application.configuration.applicationLanguage = language;
 			this.$services.swagger.language = language;
+			
+			// attempt to set it in the html root for standards compliancy reasons
+			if (Intl && language) {
+				try {
+					// The Intl.Locale constructor validates the structure based on BCP 47.
+					// this is STRUCTURE, not semantics, so it might still be a non existing language but we accept that
+					new Intl.Locale(language);
+					// if we get here, it is structurally correct, set in html root
+					document.documentElement.setAttribute("lang", language);
+				}
+				// If the tag is malformed, a RangeError is thrown.
+				catch (e) {
+					// we assume we don't know the language
+				}
+			}
 		},
 		get: function(type) {
 			return this.settings.data[type];
