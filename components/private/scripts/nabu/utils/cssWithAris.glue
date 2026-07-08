@@ -1,5 +1,5 @@
 target ?= null
-bundlePath ?= "repository:" + environment("webApplicationId") + ":/private/provided/bundle.json"
+bundlePath ?= "repository:" + script.environment("webApplicationId") + ":/private/provided/bundle.json"
 string [] directories ?= fragmentResources("public/artifacts")
 autoBundle ?= true
 debug ?= false
@@ -27,8 +27,8 @@ if (breakpoints != null && breakpoints != "")
 	scss = scss + breakpoints
 
 # preload variables that have been set in the application
-if (file.readable("repository:" + environment("webApplicationId") + ":/public/aris/variables.scss"))
-	string content = file.read("repository:" + environment("webApplicationId") + ":/public/aris/variables.scss")
+if (file.readable("repository:" + script.environment("webApplicationId") + ":/public/aris/variables.scss"))
+	string content = file.read("repository:" + script.environment("webApplicationId") + ":/public/aris/variables.scss")
 	scss = scss + "\n" + content
 
 captureEcho()
@@ -68,8 +68,8 @@ if (mode == "full-extension")
 
 else if (mode == "light-extension")
 	# postload variants that have been set in the application
-	if (file.readable("repository:" + environment("webApplicationId") + ":/public/aris/variants.scss"))
-		string content = file.read("repository:" + environment("webApplicationId") + ":/public/aris/variants.scss")
+	if (file.readable("repository:" + script.environment("webApplicationId") + ":/public/aris/variants.scss"))
+		string content = file.read("repository:" + script.environment("webApplicationId") + ":/public/aris/variants.scss")
 		scss = scss + "\n" + content
 
 	captureEcho()
