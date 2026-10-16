@@ -1,0 +1,4 @@
+<structure name="features">
+	<field maxOccurs="unbounded" minOccurs="0" name="features" type="java.lang.String"/>
+	<field minOccurs="0" name="lastModified" type="java.util.Date"/>
+</structure>

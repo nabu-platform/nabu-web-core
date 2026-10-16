@@ -1,0 +1,32 @@
+<sequence id="9c9356f8f5c142a48fd3dee3e9e08f09">
+	<map id="80ec926682f14a92abfade8631b2a0cb"
+		comment="Resolve active features for the current application and principal">
+		<invoke id="e82ef64816154eff85e8c22d90a175ff"
+			resultName="resultActiveFeatures"
+			serviceId="nabu.utils.Runtime.getFeatures"
+			x="25"
+			y="25">
+			<link id="10990c3636c7423384cc63489b5dd7a3">
+				<from>input/webApplicationId</from>
+				<to>id</to>
+			</link>
+			<link id="895ce3f8ae1d403ab0b8029308dc3755">
+				<from>input/token</from>
+				<to>token</to>
+			</link>
+			<link id="021da87e568a4978bfcf030e68ef5752"
+				fixedValue="true">
+				<from>true</from>
+				<to>enabledOnly</to>
+			</link>
+		</invoke>
+		<link id="689b241323954933abc7eb6e61c33dce">
+			<from>resultActiveFeatures/features/enabled/name</from>
+			<to>output/content/features</to>
+		</link>
+		<link id="14ca76f28edc48df83d9292b919bef93">
+			<from>resultActiveFeatures/features/lastModified</from>
+			<to>output/content/lastModified</to>
+		</link>
+	</map>
+</sequence>
